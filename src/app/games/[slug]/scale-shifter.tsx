@@ -21,7 +21,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "1.6 × 10⁻³⁵ m",
     fact: "The smallest possible length in physics. At this scale, spacetime itself may be grainy, like pixels on a cosmic screen.",
     category: "QUANTUM",
-    image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Quantum_foam.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/22/Spacetime_curvature.png",
   },
   {
     label: "Quark",
