@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 type ScaleLevel = {
   emoji: string;
@@ -8,203 +8,238 @@ type ScaleLevel = {
   sizeMeters: number;
   sizeLabel: string;
   fact: string;
-  color: string;
+  category: string;
 };
+
+const HUMAN_HEIGHT = 1.7;
 
 const LEVELS: ScaleLevel[] = [
   {
     emoji: "🟣",
     label: "Planck Length",
     sizeMeters: 1.6e-35,
-    sizeLabel: "10⁻³⁵ m",
-    fact: "The smallest possible length in physics. Space itself might be grainy at this scale.",
-    color: "#8B5CF6",
+    sizeLabel: "1.6 × 10⁻³⁵ m",
+    fact: "The smallest possible length in physics. At this scale, spacetime itself may be grainy, like pixels on a cosmic screen.",
+    category: "QUANTUM",
   },
   {
     emoji: "⚛️",
     label: "Quark",
     sizeMeters: 1e-18,
-    sizeLabel: "10⁻¹⁸ m",
-    fact: "Quarks are the fundamental building blocks of protons and neutrons. They're never found alone.",
-    color: "#6366F1",
+    sizeLabel: "1 × 10⁻¹⁸ m",
+    fact: "Quarks are fundamental particles that make up protons and neutrons. They're never found alone — only in groups.",
+    category: "SUBATOMIC",
   },
   {
     emoji: "💥",
     label: "Proton",
     sizeMeters: 8.8e-16,
-    sizeLabel: "10⁻¹⁵ m",
-    fact: "Protons are made of three quarks held together by the strong nuclear force. 99.9% of an atom's mass is in its nucleus.",
-    color: "#4F46E5",
+    sizeLabel: "8.8 × 10⁻¹⁶ m",
+    fact: "Protons are made of three quarks. 99.9% of an atom's mass lives in its impossibly tiny nucleus.",
+    category: "SUBATOMIC",
   },
   {
     emoji: "🔬",
     label: "Atom",
     sizeMeters: 1e-10,
-    sizeLabel: "10⁻¹⁰ m",
-    fact: "Atoms are 99.9999999999999% empty space. If an atom were a stadium, the nucleus would be a pea at the center.",
-    color: "#3B82F6",
+    sizeLabel: "1 × 10⁻¹⁰ m",
+    fact: "Atoms are 99.9999999999999% empty space. If an atom were a stadium, the nucleus would be a pea at center field.",
+    category: "ATOMIC",
   },
   {
     emoji: "🧬",
     label: "DNA Helix",
     sizeMeters: 2e-9,
-    sizeLabel: "2 nm",
-    fact: "Your DNA, if stretched out, would reach from Earth to the Sun and back over 600 times.",
-    color: "#0EA5E9",
+    sizeLabel: "2 nanometers",
+    fact: "Your DNA, if unraveled and laid end-to-end, would stretch from Earth to the Sun and back 600 times.",
+    category: "MOLECULAR",
   },
   {
     emoji: "🦠",
     label: "Virus",
     sizeMeters: 1e-7,
-    sizeLabel: "100 nm",
-    fact: "Viruses are so small that 500 million of them could fit on a pinhead.",
-    color: "#06B6D4",
+    sizeLabel: "100 nanometers",
+    fact: "Viruses are so small that 500 million of them could dance on a pinhead. They blur the line between life and chemistry.",
+    category: "MICROSCOPIC",
   },
   {
     emoji: "🧫",
     label: "Bacteria",
     sizeMeters: 2e-6,
-    sizeLabel: "2 µm",
-    fact: "There are more bacteria in your mouth than there are people on Earth.",
-    color: "#10B981",
+    sizeLabel: "2 micrometers",
+    fact: "There are more bacteria living in your mouth right now than there are humans who have ever lived on Earth.",
+    category: "MICROSCOPIC",
   },
   {
     emoji: "🧵",
     label: "Human Hair",
     sizeMeters: 7e-5,
-    sizeLabel: "70 µm",
-    fact: "A single human hair can support up to 100 grams of weight before breaking.",
-    color: "#84CC16",
+    sizeLabel: "70 micrometers",
+    fact: "A single strand of hair can support up to 100 grams of weight. Your hair grows about 15 km in a lifetime.",
+    category: "MICROSCOPIC",
   },
   {
     emoji: "💎",
     label: "Grain of Salt",
     sizeMeters: 3e-4,
-    sizeLabel: "0.3 mm",
-    fact: "Salt crystals form perfect cubes at the molecular level.",
-    color: "#EAB308",
+    sizeLabel: "0.3 millimeters",
+    fact: "Table salt forms perfect cubes at the molecular level. Each grain contains about 10¹⁸ atoms.",
+    category: "TINY",
   },
   {
     emoji: "🪙",
     label: "Coin",
     sizeMeters: 2e-2,
-    sizeLabel: "2 cm",
-    fact: "The first coins were minted in Lydia (modern Turkey) around 600 BC.",
-    color: "#F97316",
+    sizeLabel: "2 centimeters",
+    fact: "The first coins were minted around 600 BC in Lydia. Before that, people traded grain, cattle, and seashells.",
+    category: "HUMAN_SCALE",
   },
   {
     emoji: "📏",
-    label: "Ruler",
-    sizeMeters: 1,
-    sizeLabel: "1 m",
-    fact: "The meter was originally defined as one ten-millionth of the distance from the equator to the North Pole.",
-    color: "#EF4444",
+    label: "Human",
+    sizeMeters: 1.7,
+    sizeLabel: "1.7 meters",
+    fact: "You are here. Right in the middle of the cosmic size spectrum — larger than 99.9% of matter, smaller than 99.9% of space.",
+    category: "HUMAN_SCALE",
   },
   {
     emoji: "🏢",
     label: "Skyscraper",
     sizeMeters: 8e2,
-    sizeLabel: "800 m",
-    fact: "The Burj Khalifa is so tall you can see two sunsets on the same day from top and bottom.",
-    color: "#DC2626",
+    sizeLabel: "800 meters",
+    fact: "The Burj Khalifa is so tall you can watch two sunsets in one day — one at the base, then ride up and see it again.",
+    category: "MEGASTRUCTURE",
   },
   {
     emoji: "⛰️",
     label: "Mount Everest",
     sizeMeters: 8.8e3,
-    sizeLabel: "8.8 km",
-    fact: "Everest grows about 4mm taller every year due to tectonic plate movement.",
-    color: "#B91C1C",
+    sizeLabel: "8.8 kilometers",
+    fact: "Everest grows 4mm taller every year as India pushes into Asia. Its summit is ancient seafloor.",
+    category: "GEOGRAPHIC",
   },
   {
     emoji: "🌊",
     label: "Mariana Trench",
     sizeMeters: 1.1e4,
-    sizeLabel: "11 km",
-    fact: "The deepest part of the ocean. The pressure is over 1,000 times atmospheric pressure.",
-    color: "#1D4ED8",
+    sizeLabel: "11 kilometers",
+    fact: "The deepest point on Earth. The pressure is 1,086 times atmospheric — enough to crush steel like paper.",
+    category: "GEOGRAPHIC",
   },
   {
     emoji: "🌍",
     label: "Earth",
     sizeMeters: 1.27e7,
-    sizeLabel: "12,742 km",
-    fact: "Earth is the densest planet in the solar system and the only known place with life.",
-    color: "#3B82F6",
+    sizeLabel: "12,742 kilometers",
+    fact: "Earth is the densest planet in the solar system and the only known world with liquid water on its surface.",
+    category: "PLANETARY",
   },
   {
     emoji: "🪐",
     label: "Saturn's Rings",
     sizeMeters: 2.8e8,
-    sizeLabel: "280,000 km",
-    fact: "Saturn's rings are only about 10 meters thick despite being hundreds of thousands of km wide.",
-    color: "#D97706",
+    sizeLabel: "280,000 kilometers",
+    fact: "Saturn's rings span 280,000 km but are only about 10 meters thick — thinner than a sheet of paper scaled up.",
+    category: "PLANETARY",
   },
   {
     emoji: "☀️",
     label: "The Sun",
     sizeMeters: 1.39e9,
     sizeLabel: "1.39 million km",
-    fact: "The Sun is so large that over 1.3 million Earths could fit inside it.",
-    color: "#F59E0B",
+    fact: "Over 1.3 million Earths could fit inside the Sun. It converts 600 million tons of hydrogen into helium every second.",
+    category: "STELLAR",
   },
   {
     emoji: "🛸",
     label: "Solar System",
     sizeMeters: 2.87e12,
     sizeLabel: "19.2 AU",
-    fact: "The solar system is so vast that light takes over 2.5 hours to reach from the Sun to Neptune.",
-    color: "#A855F7",
+    fact: "The solar system is so vast that light takes 2.5 hours to reach Neptune from the Sun. Voyager 1 took 35 years to leave it.",
+    category: "SOLAR_SYSTEM",
   },
   {
     emoji: "⭐",
     label: "Solar Neighborhood",
     sizeMeters: 1e16,
     sizeLabel: "1.06 light-years",
-    fact: "The nearest star to our Sun, Proxima Centauri, is 4.24 light-years away.",
-    color: "#7C3AED",
+    fact: "The nearest star, Proxima Centauri, is 4.24 light-years away. A message sent today would reach it in 2030.",
+    category: "INTERSTELLAR",
   },
   {
     emoji: "🌌",
     label: "Milky Way",
     sizeMeters: 9.46e20,
     sizeLabel: "100,000 light-years",
-    fact: "It would take 100,000 years traveling at the speed of light to cross the Milky Way.",
-    color: "#4C1D95",
+    fact: "Crossing the Milky Way at light speed would take 100,000 years. It contains 100 to 400 billion stars.",
+    category: "GALACTIC",
   },
   {
     emoji: "🌀",
     label: "Local Group",
     sizeMeters: 9.46e22,
     sizeLabel: "10 million light-years",
-    fact: "The Local Group contains over 80 galaxies, with Andromeda heading for a collision with us.",
-    color: "#3B0764",
+    fact: "Our Local Group contains 80+ galaxies. Andromeda is hurtling toward us at 110 km/s — collision in 4.5 billion years.",
+    category: "GALACTIC",
   },
   {
     emoji: "🕸️",
     label: "Virgo Supercluster",
     sizeMeters: 1.1e24,
     sizeLabel: "110 million light-years",
-    fact: "We're part of a cosmic web of galaxies stretching across billions of light-years.",
-    color: "#2E1065",
+    fact: "We're part of a cosmic web — a vast network of galaxy filaments stretching across the observable universe.",
+    category: "COSMIC",
   },
   {
     emoji: "🔮",
     label: "Observable Universe",
     sizeMeters: 8.8e26,
     sizeLabel: "93 billion light-years",
-    fact: "The observable universe contains an estimated 2 trillion galaxies.",
-    color: "#000",
+    fact: "The observable universe contains 2 trillion galaxies. Beyond it lies either more universe or the edge of reality itself.",
+    category: "COSMIC",
   },
 ];
+
+function humanSilhouette(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.strokeStyle = "rgba(0,0,0,0.25)";
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = "round";
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.beginPath();
+  ctx.arc(0, -28, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, -20);
+  ctx.lineTo(0, 10);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-12, -8);
+  ctx.lineTo(0, -2);
+  ctx.lineTo(12, -8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, 10);
+  ctx.lineTo(-10, 30);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, 10);
+  ctx.lineTo(10, 30);
+  ctx.stroke();
+  ctx.restore();
+}
 
 export default function Scale() {
   const [level, setLevel] = useState(0);
   const [direction, setDirection] = useState<"up" | "down">("up");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const current = LEVELS[level];
   const isComplete = level >= LEVELS.length;
-  const progress = (level / (LEVELS.length - 1)) * 100;
+  const isHumanLevel = LEVELS[level]?.label === "Human";
 
   const next = useCallback(() => {
     if (level < LEVELS.length - 1) {
@@ -220,88 +255,271 @@ export default function Scale() {
     }
   }, [level]);
 
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const w = 400;
+    const h = 300;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h / 2;
+    const scaleFactor = current.sizeMeters / HUMAN_HEIGHT;
+
+    if (scaleFactor < 0.00001) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff6e6";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.15)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = "40px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(current.emoji, cx, cy - 5);
+
+      ctx.font = "11px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.4)";
+      ctx.fillText("MAGNIFIED", cx, cy + 40);
+
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      const ratioStr = scaleFactor.toExponential(2);
+      ctx.fillText(`${ratioStr}x your size`, cx, cy + 62);
+      ctx.restore();
+    } else if (scaleFactor < 0.1) {
+      const objSize = Math.max(10, 200 * scaleFactor);
+      ctx.save();
+      ctx.globalAlpha = 0.4;
+      humanSilhouette(ctx, cx - 40, cy + 40, 60);
+      ctx.globalAlpha = 1;
+
+      ctx.font = `${Math.max(24, Math.min(80, objSize * 2.5))}px serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(current.emoji, cx + 40, cy - 10);
+
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.textAlign = "center";
+      ctx.fillText(`×${(1 / scaleFactor).toFixed(0)} smaller`, cx, cy + 90);
+      ctx.restore();
+    } else if (scaleFactor < 1000) {
+      const objPx = Math.min(200, scaleFactor * 40);
+
+      ctx.save();
+      ctx.globalAlpha = 0.25;
+      humanSilhouette(ctx, cx, cy + 60, 55);
+      ctx.globalAlpha = 1;
+
+      ctx.font = `${Math.max(28, Math.min(100, objPx))}px serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(current.emoji, cx, cy - 20);
+
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.textAlign = "center";
+      ctx.fillText(`×${scaleFactor.toFixed(1)} larger`, cx, cy + 90);
+      ctx.restore();
+    } else if (scaleFactor < 1000000) {
+      const dotSize = Math.max(2, Math.min(8, 100 / scaleFactor));
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, dotSize, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.fill();
+
+      ctx.font = "60px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(current.emoji, cx, cy - 40);
+
+      ctx.font = "11px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.textAlign = "center";
+      ctx.fillText("You are here →", cx + 25, cy + 8);
+
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.fillText(`×${(1 / dotSize).toFixed(0)} larger`, cx, cy + 80);
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx - 70, cy + 40, 3, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.fill();
+
+      ctx.font = "60px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(current.emoji, cx + 40, cy - 20);
+
+      ctx.font = "11px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.textAlign = "center";
+      ctx.fillText("You are here →", cx - 45, cy + 48);
+
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.textAlign = "center";
+      const ratioStr = scaleFactor.toExponential(1);
+      ctx.fillText(`${ratioStr}x your size`, cx, cy + 90);
+      ctx.restore();
+    }
+  }, [current]);
+
+  useEffect(() => {
+    drawCanvas();
+  }, [drawCanvas]);
+
   if (isComplete) {
     return (
-      <div className="w-full text-center py-4" style={{ animation: "fade-up 0.4s ease-out" }}>
-        <div className="text-6xl mb-4">🌌</div>
-        <h2 className="text-2xl font-bold text-ink mb-2">Journey Complete</h2>
-        <p className="text-ink-secondary mb-6">
-          You traveled across 23 orders of magnitude — from the quantum foam to the edge of the cosmos.
-        </p>
-        <button
-          onClick={() => { setLevel(0); setDirection("up"); }}
-          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-accent hover:bg-accent-hover transition-all duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          Start over
-        </button>
+      <div className="w-full h-full flex items-center justify-center py-8" style={{ animation: "fade-up 0.4s ease-out" }}>
+        <div className="text-center">
+          <div className="text-6xl mb-4">🌌</div>
+          <h2 className="text-2xl font-bold text-ink mb-2">Journey Complete</h2>
+          <p className="text-ink-secondary mb-6 max-w-sm mx-auto">
+            You traveled across 27 orders of magnitude — from the quantum foam to the edge of the cosmos.
+          </p>
+          <button
+            onClick={() => { setLevel(0); setDirection("up"); }}
+            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-accent hover:bg-accent-hover transition-all duration-200 active:scale-95"
+          >
+            Start over
+          </button>
+        </div>
       </div>
     );
   }
 
-  const scaleFactor = level > 0 ? current.sizeMeters / LEVELS[level - 1].sizeMeters : 0;
+  const progress = ((level + 1) / LEVELS.length) * 100;
 
   return (
-    <div className="w-full" style={{ animation: "fade-up 0.4s ease-out" }}>
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-xs text-ink-muted mb-1.5">
-          <span>Planck Length</span>
-          <span className="tabular-nums">{Math.round(progress)}%</span>
-          <span>Observable Universe</span>
-        </div>
-        <div className="w-full h-2 bg-border rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{ width: `${progress}%`, backgroundColor: current.color }}
-          />
-        </div>
-      </div>
+    <div className="relative w-full" style={{ animation: "fade-up 0.4s ease-out" }}>
+      <div
+        className="relative bg-[#fffaec] rounded-2xl overflow-hidden"
+        style={{ minHeight: "480px" }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "repeating-linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 0, transparent 30px)",
+          }}
+        />
 
-      <div key={level} style={{ animation: direction === "up" ? "fade-up 0.5s ease-out" : "fade-up 0.3s ease-out reverse" }}>
-        <div className="text-center mb-6">
-          <div className="text-6xl mb-3">{current.emoji}</div>
-          <h2 className="text-2xl font-bold font-display text-ink mb-1">{current.label}</h2>
-          <p className="text-sm text-ink-muted font-mono">{current.sizeLabel}</p>
-        </div>
+        <div
+          className="absolute inset-3 sm:inset-[12px] pointer-events-none border-2 border-black/15 rounded-xl transition-all duration-500"
+          style={{ zIndex: 3 }}
+        />
 
-        <div className="bg-accent-light rounded-xl p-4 mb-6">
-          <p className="text-sm text-ink-secondary leading-relaxed">{current.fact}</p>
-        </div>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, transparent 0%, rgba(255,89,0,0.03) 60%, rgba(106,37,0,0.05) 80%)",
+          }}
+        />
 
-        {level > 0 && (
-          <div className="flex items-center justify-center gap-2 text-xs text-ink-muted mb-6">
-            <span>{LEVELS[level - 1].emoji} {LEVELS[level - 1].label}</span>
-            <span className="text-ink-secondary font-bold">×{scaleFactor < 1000 ? scaleFactor.toFixed(1) : scaleFactor.toExponential(1)}</span>
-            <span>{current.emoji} {current.label}</span>
+        <div className="relative px-4 sm:px-8 pt-8 sm:pt-10 pb-4" style={{ zIndex: 2 }}>
+          <div className="text-center mb-2">
+            <span
+              className="inline-block font-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide text-[#2e2307] uppercase px-2"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              {current.label}
+            </span>
           </div>
-        )}
-      </div>
 
-      <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={prev}
-          disabled={level === 0}
-          className="px-4 py-2 rounded-lg text-sm font-medium text-ink-secondary bg-surface border border-border hover:border-accent hover:text-accent transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          ← Previous
-        </button>
-        <button
-          onClick={next}
-          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-accent hover:bg-accent-hover transition-all duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          {level < LEVELS.length - 1 ? "Next →" : "Finish"}
-        </button>
-      </div>
+          <div className="flex items-center justify-center gap-3 mt-2 mb-3">
+            <span className="inline-block bg-[#fff8ef] border border-[rgba(121,32,32,0.25)] rounded px-2.5 py-1 text-xs text-[#5d1616] tracking-wide">
+              {current.category}
+            </span>
+            <span className="text-xs text-black/40 font-mono">
+              {current.sizeLabel}
+            </span>
+          </div>
 
-      <div className="flex items-center justify-center gap-1 mt-4">
-        {LEVELS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => { setDirection(i > level ? "up" : "down"); setLevel(i); }}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              i === level ? "bg-accent scale-125" : i < level ? "bg-accent/40" : "bg-border"
-            }`}
-          />
-        ))}
+          <div className="flex justify-center mt-1 mb-2">
+            <canvas
+              ref={canvasRef}
+              className="block"
+              style={{ width: 400, height: 300, maxWidth: "100%" }}
+            />
+          </div>
+
+          <div className="max-w-md mx-auto text-center px-2 mb-3">
+            <p className="text-sm sm:text-base text-[#2e2307]/85 leading-relaxed font-light" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              {current.fact}
+            </p>
+          </div>
+        </div>
+
+        <div className="relative px-4 sm:px-8 pb-4" style={{ zIndex: 2 }}>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={prev}
+              disabled={level === 0}
+              className="w-11 h-11 rounded-full bg-[#fff6e6] border-none shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[#fffcf0] disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ outline: "1px solid rgba(79,34,34,0.5)", outlineOffset: "-3px" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="rotate-180">
+                <path d="M6 3L12 9L6 15" stroke="#2e2307" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              {LEVELS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setDirection(i > level ? "up" : "down"); setLevel(i); }}
+                  className={`transition-all duration-300 rounded-full ${
+                    i === level
+                      ? "w-2.5 h-2.5 bg-[#2e2307]"
+                      : i < level
+                      ? "w-2 h-2 bg-[#2e2307]/30"
+                      : "w-2 h-2 bg-black/10"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={next}
+              className="w-11 h-11 rounded-full bg-[#fff6e6] border-none shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[#fffcf0]"
+              style={{ outline: "1px solid rgba(79,34,34,0.5)", outlineOffset: "-3px" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M6 3L12 9L6 15" stroke="#2e2307" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="mt-3 mx-auto max-w-xs">
+            <div className="h-1 bg-black/8 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#2e2307]/40 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
