@@ -149,7 +149,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "1.39 million km",
     fact: "Over 1.3 million Earths could fit inside the Sun. It converts 600 million tons of hydrogen into helium every second.",
     category: "STELLAR",
-    image: "https://upload.wikimedia.org/wikipedia/commons/8/81/Transparent_Sun.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Sun_in_February_(transparent).png",
   },
   {
     label: "Solar System",
