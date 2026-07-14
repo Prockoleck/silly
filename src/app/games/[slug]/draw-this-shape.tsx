@@ -18,35 +18,6 @@ const SHAPE_LABELS: Record<ShapeKey, string> = {
 
 const CANVAS_SIZE = 320;
 
-function insideCircle(x: number, y: number, cx: number, cy: number, r: number): boolean {
-  return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
-}
-
-function insideRect(x: number, y: number, cx: number, cy: number, half: number): boolean {
-  return x >= cx - half && x <= cx + half && y >= cy - half && y <= cy + half;
-}
-
-function pointInTriangle(px: number, py: number, ax: number, ay: number, bx: number, by: number, cx: number, cy: number): boolean {
-  const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by);
-  const d2 = (px - cx) * (by - cy) - (bx - cx) * (py - cy);
-  const d3 = (px - ax) * (cy - ay) - (cx - ax) * (py - ay);
-  const neg = d1 < 0 || d2 < 0 || d3 < 0;
-  const pos = d1 > 0 || d2 > 0 || d3 > 0;
-  return !(neg && pos);
-}
-
-function pointInPolygon(px: number, py: number, verts: Point[]): boolean {
-  let inside = false;
-  for (let i = 0, j = verts.length - 1; i < verts.length; j = i++) {
-    const xi = verts[i].x, yi = verts[i].y;
-    const xj = verts[j].x, yj = verts[j].y;
-    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
 function starPoints(cx: number, cy: number, outerR: number, innerR: number, points: number): Point[] {
   const verts: Point[] = [];
   for (let i = 0; i < points * 2; i++) {
@@ -68,7 +39,6 @@ function polygonPoints(cx: number, cy: number, r: number, sides: number): Point[
 
 const SHAPE_DEFS: Record<ShapeKey, {
   draw: (ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number) => void;
-  isInside: (x: number, y: number, cx: number, cy: number, size: number) => boolean;
 }> = {
   circle: {
     draw(ctx, cx, cy, size) {
@@ -76,17 +46,11 @@ const SHAPE_DEFS: Record<ShapeKey, {
       ctx.arc(cx, cy, size * 0.4, 0, Math.PI * 2);
       ctx.stroke();
     },
-    isInside(x, y, cx, cy, size) {
-      return insideCircle(x, y, cx, cy, size * 0.4);
-    },
   },
   square: {
     draw(ctx, cx, cy, size) {
       const half = size * 0.35;
       ctx.strokeRect(cx - half, cy - half, half * 2, half * 2);
-    },
-    isInside(x, y, cx, cy, size) {
-      return insideRect(x, y, cx, cy, size * 0.35);
     },
   },
   triangle: {
@@ -102,11 +66,6 @@ const SHAPE_DEFS: Record<ShapeKey, {
       ctx.closePath();
       ctx.stroke();
     },
-    isInside(x, y, cx, cy, size) {
-      const r = size * 0.4;
-      const pts = polygonPoints(cx, cy, r, 3);
-      return pointInPolygon(x, y, pts);
-    },
   },
   star: {
     draw(ctx, cx, cy, size) {
@@ -115,10 +74,6 @@ const SHAPE_DEFS: Record<ShapeKey, {
       pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
       ctx.closePath();
       ctx.stroke();
-    },
-    isInside(x, y, cx, cy, size) {
-      const pts = starPoints(cx, cy, size * 0.4, size * 0.16, 5);
-      return pointInPolygon(x, y, pts);
     },
   },
   pentagon: {
@@ -129,75 +84,118 @@ const SHAPE_DEFS: Record<ShapeKey, {
       ctx.closePath();
       ctx.stroke();
     },
-    isInside(x, y, cx, cy, size) {
-      const pts = polygonPoints(cx, cy, size * 0.4, 5);
-      return pointInPolygon(x, y, pts);
-    },
   },
 };
 
-function computeScore(strokes: Point[][], shape: ShapeKey): number {
+function shapePerimeterPoints(shape: ShapeKey): Point[] {
   const SIZE = 100;
-  const offscreen = typeof document !== "undefined" ? document.createElement("canvas") : null;
-  if (!offscreen) return 0;
-  offscreen.width = SIZE;
-  offscreen.height = SIZE;
-
-  const ctx = offscreen.getContext("2d");
-  if (!ctx) return 0;
-
   const cx = SIZE / 2;
   const cy = SIZE / 2;
-  const scale = SIZE / CANVAS_SIZE;
+  const N = 200;
 
-  const def = SHAPE_DEFS[shape];
-
-  const target = ctx.getImageData(0, 0, SIZE, SIZE);
-  const paddedSize = SIZE * 1.15;
-  for (let y = 0; y < SIZE; y++) {
-    for (let x = 0; x < SIZE; x++) {
-      if (def.isInside(x, y, cx, cy, paddedSize)) {
-        const i = (y * SIZE + x) * 4;
-        target.data[i] = 255;
-        target.data[i + 1] = 255;
-        target.data[i + 2] = 255;
-        target.data[i + 3] = 255;
+  switch (shape) {
+    case "circle": {
+      const r = SIZE * 0.4;
+      const pts: Point[] = [];
+      for (let i = 0; i < N; i++) {
+        const a = (2 * Math.PI * i) / N;
+        pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
       }
+      return pts;
+    }
+    case "square": {
+      const half = SIZE * 0.35;
+      const pts: Point[] = [];
+      for (let i = 0; i < N; i++) {
+        const t = i / N;
+        if (t < 0.25) {
+          const p = t * 4;
+          pts.push({ x: cx - half + p * 2 * half, y: cy - half });
+        } else if (t < 0.5) {
+          const p = (t - 0.25) * 4;
+          pts.push({ x: cx + half, y: cy - half + p * 2 * half });
+        } else if (t < 0.75) {
+          const p = (t - 0.5) * 4;
+          pts.push({ x: cx + half - p * 2 * half, y: cy + half });
+        } else {
+          const p = (t - 0.75) * 4;
+          pts.push({ x: cx - half, y: cy + half - p * 2 * half });
+        }
+      }
+      return pts;
+    }
+    case "triangle": {
+      const verts = polygonPoints(cx, cy, SIZE * 0.4, 3);
+      return samplePolygonPerimeter(verts, N);
+    }
+    case "star": {
+      const verts = starPoints(cx, cy, SIZE * 0.4, SIZE * 0.16, 5);
+      return samplePolygonPerimeter(verts, N);
+    }
+    case "pentagon": {
+      const verts = polygonPoints(cx, cy, SIZE * 0.4, 5);
+      return samplePolygonPerimeter(verts, N);
     }
   }
+}
 
-  ctx.fillStyle = "white";
-  ctx.strokeStyle = "white";
-  for (const stroke of strokes) {
-    if (stroke.length < 2) continue;
-    ctx.beginPath();
-    ctx.lineWidth = Math.max(4, 6 * scale);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    stroke.forEach((p, i) => {
-      const sx = p.x * scale;
-      const sy = p.y * scale;
-      i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
-    });
-    ctx.stroke();
-  }
-  const drawnData = ctx.getImageData(0, 0, SIZE, SIZE);
-
-  let targetPixels = 0;
-  let drawnPixels = 0;
-  let intersection = 0;
-  for (let i = 0; i < target.data.length; i += 4) {
-    const t = target.data[i] > 128;
-    const d = drawnData.data[i] > 128;
-    if (t) targetPixels++;
-    if (d) drawnPixels++;
-    if (t && d) intersection++;
+function samplePolygonPerimeter(verts: Point[], N: number): Point[] {
+  const edgeLens: number[] = [];
+  let totalLen = 0;
+  for (let i = 0; i < verts.length; i++) {
+    const j = (i + 1) % verts.length;
+    const dx = verts[j].x - verts[i].x;
+    const dy = verts[j].y - verts[i].y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    edgeLens.push(len);
+    totalLen += len;
   }
 
-  if (targetPixels === 0 || drawnPixels === 0) return 0;
+  const pts: Point[] = [];
+  for (let s = 0; s < N; s++) {
+    const dist = (s / N) * totalLen;
+    let accumulated = 0;
+    for (let i = 0; i < verts.length; i++) {
+      const j = (i + 1) % verts.length;
+      if (accumulated + edgeLens[i] >= dist) {
+        const t = (dist - accumulated) / edgeLens[i];
+        pts.push({
+          x: verts[i].x + t * (verts[j].x - verts[i].x),
+          y: verts[i].y + t * (verts[j].y - verts[i].y),
+        });
+        break;
+      }
+      accumulated += edgeLens[i];
+    }
+  }
+  return pts;
+}
 
-  const weightedDenom = targetPixels * 0.55 + drawnPixels * 0.45;
-  return Math.round((intersection / weightedDenom) * 100);
+function computeScore(strokes: Point[][], shape: ShapeKey): number {
+  const SIZE = 100;
+  const scale = SIZE / CANVAS_SIZE;
+
+  const allPoints = strokes.flatMap((s) => s.map((p) => ({ x: p.x * scale, y: p.y * scale })));
+  if (allPoints.length < 5) return 0;
+
+  const perimeter = shapePerimeterPoints(shape);
+
+  let totalDist = 0;
+  for (const pp of perimeter) {
+    let minDist = Infinity;
+    for (const sp of allPoints) {
+      const dx = pp.x - sp.x;
+      const dy = pp.y - sp.y;
+      const dist = dx * dx + dy * dy;
+      if (dist < minDist) minDist = dist;
+    }
+    totalDist += Math.sqrt(minDist);
+  }
+
+  const avgDist = totalDist / perimeter.length;
+  const maxDist = Math.sqrt(SIZE * SIZE * 2) / 2;
+  const normalized = Math.max(0, 1 - avgDist / (maxDist * 0.35));
+  return Math.min(100, Math.round(Math.pow(normalized, 0.6) * 100));
 }
 
 function rating(score: number): { label: string; emoji: string } {
