@@ -15,13 +15,6 @@ export const games: Game[] = [
     isNew: true,
   },
   {
-    slug: "draw-this-shape",
-    title: "Draw This Shape",
-    description: "Trace shapes freehand. Get scored on accuracy.",
-    image: "/games/draw-this-shape.svg",
-    isNew: true,
-  },
-  {
     slug: "old-web-explorer",
     title: "Old Web Explorer",
     description: "Browse retro web pages from 1999. Nostalgia guaranteed.",
@@ -30,9 +23,10 @@ export const games: Game[] = [
   },
   {
     slug: "scale-shifter",
-    title: "Scale Shifter",
-    description: "Zoom from the smallest to the largest thing in the universe.",
+    title: "Scale",
+    description: "Scroll through the universe from the quantum foam to the cosmic web.",
     image: "/games/scale-shifter.svg",
+    isNew: true,
   },
   {
     slug: "ranker",

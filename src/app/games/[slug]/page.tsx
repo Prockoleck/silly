@@ -19,7 +19,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 const gameComponents: Record<string, () => Promise<{ default: React.ComponentType }>> = {
   "spend-a-billion": () => import("./spend-a-billion"),
-  "draw-this-shape": () => import("./draw-this-shape"),
   "old-web-explorer": () => import("./old-web-explorer"),
   "scale-shifter": () => import("./scale-shifter"),
   "ranker": () => import("./ranker"),
