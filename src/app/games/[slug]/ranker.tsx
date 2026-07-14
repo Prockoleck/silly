@@ -153,24 +153,40 @@ export default function Ranker() {
     return [...category.items].sort((a, b) => b.value - a.value);
   }, [category]);
 
-  const moveUp = useCallback((i: number) => {
-    if (i === 0) return;
-    setSortOrder((prev) => {
-      const next = [...prev];
-      [next[i - 1], next[i]] = [next[i], next[i - 1]];
-      return next;
-    });
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = useCallback((i: number) => {
+    setDragIndex(i);
   }, []);
 
-  const moveDown = useCallback((i: number) => {
-    if (!category) return;
-    if (i >= category.items.length - 1) return;
+  const handleDragOver = useCallback((e: React.DragEvent, i: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragIndex !== null && dragIndex !== i) setOverIndex(i);
+  }, [dragIndex]);
+
+  const handleDragLeave = useCallback(() => {
+    setOverIndex(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    setOverIndex(null);
+    if (dragIndex === null || dragIndex === targetIdx) return;
     setSortOrder((prev) => {
-      const next = [...prev];
-      [next[i], next[i + 1]] = [next[i + 1], next[i]];
-      return next;
+      const arr = [...prev];
+      const [moved] = arr.splice(dragIndex, 1);
+      arr.splice(targetIdx, 0, moved);
+      return arr;
     });
-  }, [category]);
+    setDragIndex(null);
+  }, [dragIndex]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null);
+    setOverIndex(null);
+  }, []);
 
   const submitSort = useCallback(() => {
     if (!category) return;
@@ -300,49 +316,41 @@ export default function Ranker() {
             <span className="font-display font-semibold text-ink">{category.name}</span>
           </div>
           <p className="text-xs text-ink-secondary text-center mb-5">
-            Tap arrows to reorder from <strong>highest {category.metricShort}</strong> (top) to <strong>lowest</strong> (bottom)
+            Drag to reorder from <strong>highest {category.metricShort}</strong> (top) to <strong>lowest</strong> (bottom)
           </p>
 
           <div className="space-y-1.5 mb-5">
             {sortOrder.map((item, i) => (
               <div
                 key={item.name}
-                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                draggable={!sortSubmitted}
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={(e) => handleDragOver(e, i)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, i)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none ${
                   sortSubmitted
                     ? item.name === correctOrder[i].name
                       ? "bg-green-50 border-green-300"
                       : "bg-red-50 border-red-200"
-                    : "bg-white border-border"
-                }`}
+                    : dragIndex === i
+                      ? "opacity-40 border-accent/40 bg-accent-light/20"
+                      : overIndex === i
+                        ? "border-accent/50 bg-accent-light/30 scale-[1.01]"
+                        : "bg-white border-border hover:border-accent/30 hover:bg-accent-light/10"
+                } ${!sortSubmitted ? "cursor-grab active:cursor-grabbing" : ""}`}
               >
                 {!sortSubmitted && (
-                  <div className="flex flex-col items-center gap-0.5 mr-1">
-                    <button
-                      onClick={() => moveUp(i)}
-                      disabled={i === 0}
-                      className="text-xs text-ink-muted hover:text-accent disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer leading-none"
-                    >
-                      ▲
-                    </button>
-                    <span className="text-[10px] text-ink-muted font-mono tabular-nums">{i + 1}</span>
-                    <button
-                      onClick={() => moveDown(i)}
-                      disabled={i === sortOrder.length - 1}
-                      className="text-xs text-ink-muted hover:text-accent disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer leading-none"
-                    >
-                      ▼
-                    </button>
-                  </div>
+                  <span className="text-sm text-ink-muted select-none shrink-0" title="Drag to reorder">☰</span>
                 )}
+                <span className={`text-sm font-mono font-bold w-5 text-center shrink-0 ${sortSubmitted ? item.name === correctOrder[i].name ? "text-green-600" : "text-red-400" : "text-ink-muted"}`}>
+                  {i + 1}
+                </span>
+                <span className="text-lg shrink-0">{item.emoji}</span>
+                <span className="flex-1 text-sm font-medium text-ink truncate">{item.name}</span>
                 {sortSubmitted && (
-                  <span className={`text-sm font-mono font-bold w-6 text-center ${item.name === correctOrder[i].name ? "text-green-600" : "text-red-400"}`}>
-                    {i + 1}
-                  </span>
-                )}
-                <span className="text-lg">{item.emoji}</span>
-                <span className="flex-1 text-sm font-medium text-ink">{item.name}</span>
-                {sortSubmitted && (
-                  <span className="text-xs text-ink-secondary">{item.valueLabel}</span>
+                  <span className="text-xs text-ink-secondary shrink-0">{item.valueLabel}</span>
                 )}
               </div>
             ))}
