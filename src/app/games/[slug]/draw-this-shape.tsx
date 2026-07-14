@@ -153,9 +153,10 @@ function computeScore(strokes: Point[][], shape: ShapeKey): number {
   const def = SHAPE_DEFS[shape];
 
   const target = ctx.getImageData(0, 0, SIZE, SIZE);
+  const paddedSize = SIZE * 1.15;
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
-      if (def.isInside(x, y, cx, cy, SIZE)) {
+      if (def.isInside(x, y, cx, cy, paddedSize)) {
         const i = (y * SIZE + x) * 4;
         target.data[i] = 255;
         target.data[i + 1] = 255;
@@ -182,16 +183,21 @@ function computeScore(strokes: Point[][], shape: ShapeKey): number {
   }
   const drawnData = ctx.getImageData(0, 0, SIZE, SIZE);
 
+  let targetPixels = 0;
+  let drawnPixels = 0;
   let intersection = 0;
-  let union = 0;
   for (let i = 0; i < target.data.length; i += 4) {
     const t = target.data[i] > 128;
     const d = drawnData.data[i] > 128;
-    if (t || d) union++;
+    if (t) targetPixels++;
+    if (d) drawnPixels++;
     if (t && d) intersection++;
   }
 
-  return union > 0 ? Math.round((intersection / union) * 100) : 0;
+  if (targetPixels === 0 || drawnPixels === 0) return 0;
+
+  const weightedDenom = targetPixels * 0.55 + drawnPixels * 0.45;
+  return Math.round((intersection / weightedDenom) * 100);
 }
 
 function rating(score: number): { label: string; emoji: string } {
