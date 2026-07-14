@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Fredoka, DM_Sans } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
 
-const spaceGrotesk = Space_Grotesk({
+const fredoka = Fredoka({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-display",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-body",
 });
 
 export const metadata: Metadata = {
@@ -22,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${spaceGrotesk.className} min-h-screen flex flex-col antialiased`}>
+    <html lang="en" className={`${fredoka.variable} ${dmSans.variable}`}>
+      <body className="min-h-screen flex flex-col antialiased font-body">
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

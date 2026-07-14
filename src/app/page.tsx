@@ -6,31 +6,31 @@ export default function Home() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-      <header className="mb-16">
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-ink">
+      <header className="mb-16" style={{ animation: "bounce-in 0.6s ease-out" }}>
+        <h1 className="text-6xl sm:text-7xl font-bold tracking-tight text-ink font-display">
           Silly
         </h1>
-        <p className="text-lg text-ink-secondary mt-3 max-w-md">
-          A collection of interactive experiments and mini-games.
+        <p className="text-lg text-ink-secondary mt-3 max-w-lg leading-relaxed">
+          A playful collection of interactive experiments and mini-games.
           Free, no signup, just fun.
         </p>
       </header>
 
       {first && (
-        <div className="mb-6" style={{ animation: "fade-up 0.4s ease-out" }}>
+        <div
+          className="mb-6"
+          style={{ animation: "bounce-in 0.5s ease-out 0.1s both" }}
+        >
           <GameCard game={first} featured />
         </div>
       )}
 
-      <div
-        className="grid gap-4 sm:grid-cols-2"
-        style={{ animation: "fade-up 0.4s ease-out 0.15s both" }}
-      >
+      <div className="grid gap-4 sm:grid-cols-2">
         {rest.map((game, i) => (
           <div
             key={game.slug}
             style={{
-              animation: `stagger-in 0.35s ease-out ${0.2 + i * 0.08}s both`,
+              animation: `bounce-in 0.4s ease-out ${0.2 + i * 0.1}s both`,
             }}
           >
             <GameCard game={game} />

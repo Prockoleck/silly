@@ -20,12 +20,12 @@ export default function GameFrame({ title, children }: GameFrameProps) {
         <span className="text-sm text-ink-muted">{title}</span>
       </nav>
 
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink mb-8">
+      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink mb-8 font-display">
         {title}
       </h1>
 
       <div
-        className="relative bg-surface border border-border rounded-xl p-6 sm:p-8 min-h-[300px]"
+        className="relative bg-surface border-2 border-ink/10 rounded-2xl p-6 sm:p-8 min-h-[300px]"
         style={{ animation: "fade-up 0.4s ease-out" }}
       >
         {children}
