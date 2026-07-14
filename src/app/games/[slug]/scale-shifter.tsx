@@ -218,7 +218,7 @@ export default function Scale() {
       setDirection("down");
       setLevel((l) => l - 1);
     }
-  }, []);
+  }, [level]);
 
   if (isComplete) {
     return (
