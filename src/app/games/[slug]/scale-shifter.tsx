@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 
 type ScaleLevel = {
   label: string;
@@ -9,8 +10,6 @@ type ScaleLevel = {
   fact: string;
   category: string;
   image: string;
-  imgWidth?: number;
-  imgHeight?: number;
 };
 
 const HUMAN_HEIGHT = 1.7;
@@ -78,7 +77,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "70 micrometers",
     fact: "A single strand of hair can support up to 100 grams of weight. Your hair grows about 15 km in a lifetime.",
     category: "MICROSCOPIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Up_Close_Hair_Strand_Used_in_Forensics.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Human_Hair_Partly_Bleached.png",
   },
   {
     label: "Grain of Salt",
@@ -158,7 +157,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "19.2 AU",
     fact: "The solar system is so vast that light takes 2.5 hours to reach Neptune from the Sun. Voyager 1 took 35 years to leave it.",
     category: "SOLAR_SYSTEM",
-    image: "https://upload.wikimedia.org/wikipedia/commons/a/a9/2_Solar_System_%28blank_2%29.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/df/The_Solar_Sistem.png",
   },
   {
     label: "Solar Neighborhood",
@@ -202,91 +201,59 @@ const LEVELS: ScaleLevel[] = [
   },
 ];
 
-function ScaleBar({ ratio }: { ratio: number }) {
-  const humanPct = ratio >= 1 ? Math.min(50 / ratio, 50) : 50;
-  const objectPct = ratio >= 1 ? Math.min(50, 50 * ratio) : Math.min(50 / ratio, 50);
-
-  return (
-    <div className="flex items-center gap-1.5 text-[10px] text-black/40">
-      <div className="flex-1 h-6 relative flex items-center justify-center bg-black/[0.04] rounded">
-        <div className="absolute left-0.5 right-0.5 bottom-0.5 flex items-end justify-center gap-0" style={{ height: "70%" }}>
-          <div
-            className="bg-black/10 rounded-t-sm transition-all duration-500"
-            style={{ width: `${Math.min(humanPct, 95)}%`, height: "100%", maxWidth: "50%" }}
-          />
-          <div
-            className="bg-black/20 rounded-t-sm transition-all duration-500"
-            style={{ width: `${Math.min(objectPct, 95)}%`, height: "100%", maxWidth: "50%" }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Scale() {
   const [level, setLevel] = useState(0);
-  const [direction, setDirection] = useState<"up" | "down">("up");
   const [imgError, setImgError] = useState(false);
 
   const current = LEVELS[level];
   const isComplete = level >= LEVELS.length;
+  const progress = ((level + 1) / LEVELS.length) * 100;
 
   const next = useCallback(() => {
-    if (level < LEVELS.length - 1) {
-      setDirection("up");
-      setLevel((l) => l + 1);
-      setImgError(false);
-    }
+    if (level < LEVELS.length - 1) { setLevel((l) => l + 1); setImgError(false); }
   }, [level]);
 
   const prev = useCallback(() => {
-    if (level > 0) {
-      setDirection("down");
-      setLevel((l) => l - 1);
-      setImgError(false);
-    }
+    if (level > 0) { setLevel((l) => l - 1); setImgError(false); }
   }, [level]);
 
   const jumpTo = useCallback((i: number) => {
-    setDirection(i > level ? "up" : "down");
     setLevel(i);
     setImgError(false);
-  }, [level]);
+  }, []);
 
   const scaleFactor = current.sizeMeters / HUMAN_HEIGHT;
   const isHumanLevel = current.label === "Human";
 
-  // Determine size comparison text
   let comparisonText = "";
   if (isHumanLevel) {
     comparisonText = "You are here";
   } else if (scaleFactor < 0.00001) {
-    comparisonText = `${Math.abs(Math.log10(scaleFactor)).toFixed(0)} orders of magnitude smaller than you`;
+    comparisonText = `${Math.abs(Math.log10(scaleFactor)).toFixed(0)} orders of magnitude smaller`;
   } else if (scaleFactor < 1) {
     const factor = 1 / scaleFactor;
-    comparisonText = factor >= 1000 ? `${(factor / 1000).toFixed(1)} thousand times smaller than you` : `${factor.toFixed(0)} times smaller than you`;
+    comparisonText = factor >= 1000 ? `${(factor / 1000).toFixed(1)} thousand times smaller` : `${factor.toFixed(0)} times smaller`;
   } else if (scaleFactor < 1000) {
-    comparisonText = `${scaleFactor.toFixed(1)} times larger than you`;
+    comparisonText = `${scaleFactor.toFixed(1)} times larger`;
   } else if (scaleFactor < 1000000) {
-    comparisonText = `${(scaleFactor / 1000).toFixed(1)} thousand times larger than you`;
+    comparisonText = `${(scaleFactor / 1000).toFixed(1)} thousand times larger`;
   } else if (scaleFactor < 1000000000) {
-    comparisonText = `${(scaleFactor / 1000000).toFixed(1)} million times larger than you`;
+    comparisonText = `${(scaleFactor / 1000000).toFixed(1)} million times larger`;
   } else {
-    comparisonText = `${scaleFactor.toExponential(1)} times larger than you`;
+    comparisonText = `${scaleFactor.toExponential(1)} times larger`;
   }
 
   if (isComplete) {
     return (
-      <div className="w-full h-full flex items-center justify-center py-8" style={{ animation: "fade-up 0.4s ease-out" }}>
-        <div className="text-center">
+      <div className="fixed inset-0 z-50 bg-[#fffaec] flex items-center justify-center" style={{ animation: "fade-up 0.4s ease-out" }}>
+        <div className="text-center px-6">
           <div className="text-6xl mb-4">🌌</div>
-          <h2 className="text-2xl font-bold text-ink mb-2">Journey Complete</h2>
-          <p className="text-ink-secondary mb-6 max-w-sm mx-auto">
+          <h2 className="text-2xl font-bold text-[#2e2307] mb-2">Journey Complete</h2>
+          <p className="text-[#2e2307]/70 mb-6 max-w-sm mx-auto">
             You traveled across 27 orders of magnitude — from the quantum foam to the edge of the cosmos.
           </p>
           <button
-            onClick={() => { setLevel(0); setDirection("up"); }}
+            onClick={() => { setLevel(0); setImgError(false); }}
             className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-accent hover:bg-accent-hover transition-all duration-200 active:scale-95"
           >
             Start over
@@ -296,74 +263,59 @@ export default function Scale() {
     );
   }
 
-  const progress = ((level + 1) / LEVELS.length) * 100;
-
   return (
-    <div className="relative w-full" style={{ animation: "fade-up 0.4s ease-out" }}>
-      <div
-        className="relative bg-[#fffaec] rounded-2xl overflow-hidden"
-        style={{ minHeight: "480px" }}
+    <div className="fixed inset-0 z-50 bg-[#fffaec]">
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "repeating-linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 0, transparent 30px)" }} />
+      <div className="absolute inset-[8px] sm:inset-[16px] pointer-events-none border-2 border-black/15" style={{ zIndex: 3 }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(circle, transparent 0%, rgba(255,89,0,0.03) 60%, rgba(106,37,0,0.05) 80%)" }} />
+
+      <Link
+        href="/"
+        className="absolute top-4 sm:top-6 left-4 sm:left-6 z-10 flex items-center gap-1.5 text-sm text-black/40 hover:text-black/70 transition-colors"
       >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "repeating-linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 0, transparent 30px)",
-          }}
-        />
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="rotate-180">
+          <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        All games
+      </Link>
 
-        <div
-          className="absolute inset-3 sm:inset-[12px] pointer-events-none border-2 border-black/15 rounded-xl transition-all duration-500"
-          style={{ zIndex: 3 }}
-        />
+      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-10 text-xs text-black/30 font-mono tabular-nums">
+        {level + 1} / {LEVELS.length}
+      </div>
 
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(circle, transparent 0%, rgba(255,89,0,0.03) 60%, rgba(106,37,0,0.05) 80%)",
-          }}
-        />
-
-        <div className="relative px-4 sm:px-8 pt-8 sm:pt-10 pb-4" style={{ zIndex: 2 }}>
-          <div className="text-center mb-2">
+      <div className="flex flex-col items-center justify-center h-full px-6 sm:px-10 pb-12 sm:pb-16">
+        <div className="w-full max-w-lg mx-auto" style={{ animation: "fade-up 0.4s ease-out" }} key={level}>
+          <div className="text-center mb-3">
             <span
-              className="inline-block font-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide text-[#2e2307] uppercase px-2"
+              className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-wide text-[#2e2307] uppercase px-2"
               style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
             >
               {current.label}
             </span>
           </div>
 
-          <div className="flex items-center justify-center gap-3 mt-2 mb-3">
-            <span className="inline-block bg-[#fff8ef] border border-[rgba(121,32,32,0.25)] rounded px-2.5 py-1 text-xs text-[#5d1616] tracking-wide">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="bg-[#fff8ef] border border-[rgba(121,32,32,0.25)] rounded px-2.5 py-1 text-[11px] text-[#5d1616] tracking-wide">
               {current.category}
             </span>
-            <span className="text-xs text-black/40 font-mono">
-              {current.sizeLabel}
-            </span>
+            <span className="text-[11px] text-black/40 font-mono">{current.sizeLabel}</span>
           </div>
 
-          <div className="flex justify-center items-center mt-1 mb-2 relative" style={{ minHeight: "220px" }}>
-            <div className="relative flex items-center justify-center w-full max-w-[360px] mx-auto">
-              <div className="relative w-full flex items-center justify-center" style={{ minHeight: "180px" }}>
-                <img
-                  key={level}
-                  src={current.image}
-                  alt={current.label}
-                  className={`max-w-full max-h-[200px] object-contain transition-all duration-500 ${imgError ? "hidden" : ""}`}
-                  style={{ animation: "fade-up 0.5s ease-out" }}
-                  onError={() => setImgError(true)}
-                  loading="lazy"
-                />
-                {imgError && (
-                  <div className="text-6xl opacity-60" style={{ animation: "fade-up 0.5s ease-out" }}>
-                    🔬
-                  </div>
-                )}
-              </div>
-
-              {!isHumanLevel && (
-                <div className="absolute -bottom-1 right-2 flex items-center gap-1.5 bg-white/70 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm border border-black/5">
-                  <svg width="14" height="20" viewBox="0 0 14 20" className="opacity-30">
+          <div className="flex justify-center items-center mb-4" style={{ minHeight: "200px" }}>
+            <div className="relative flex items-center justify-center w-full max-w-[400px] mx-auto">
+              <img
+                key={level}
+                src={current.image}
+                alt={current.label}
+                className={`max-w-full max-h-[220px] object-contain ${imgError ? "hidden" : ""}`}
+                style={{ animation: "fade-up 0.5s ease-out" }}
+                onError={() => setImgError(true)}
+                loading="lazy"
+              />
+              {imgError && <div className="text-6xl opacity-60">🔬</div>}
+              {!isHumanLevel && !imgError && (
+                <div className="absolute -bottom-2 right-0 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm rounded-full px-2.5 py-1 shadow-sm border border-black/5">
+                  <svg width="12" height="18" viewBox="0 0 14 20" className="opacity-30">
                     <circle cx="7" cy="4" r="3" fill="currentColor" />
                     <path d="M3 9h8l-2 8H5z" fill="currentColor" />
                   </svg>
@@ -373,20 +325,18 @@ export default function Scale() {
             </div>
           </div>
 
-          <div className="max-w-md mx-auto text-center px-2 mb-2">
-            <p className="text-sm sm:text-base text-[#2e2307]/85 leading-relaxed font-light" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-              {current.fact}
-            </p>
+          <div className="max-w-md mx-auto text-center px-2 mb-5">
+            <p className="text-sm sm:text-base text-[#2e2307]/80 leading-relaxed font-light">{current.fact}</p>
           </div>
         </div>
 
-        <div className="relative px-4 sm:px-8 pb-4" style={{ zIndex: 2 }}>
-          <div className="flex items-center justify-center gap-4">
+        <div className="w-full max-w-xs mx-auto" style={{ animation: "fade-up 0.5s ease-out" }} key={`nav-${level}`}>
+          <div className="flex items-center justify-center gap-4 mb-3">
             <button
               onClick={prev}
               disabled={level === 0}
-              className="w-11 h-11 rounded-full bg-[#fff6e6] border-none shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[#fffcf0] disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ outline: "1px solid rgba(79,34,34,0.5)", outlineOffset: "-3px" }}
+              className="w-12 h-12 rounded-full bg-[#fff6e6] border-none shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[#fffcf0] disabled:opacity-25 disabled:cursor-not-allowed"
+              style={{ outline: "1px solid rgba(79,34,34,0.4)", outlineOffset: "-3px" }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="rotate-180">
                 <path d="M6 3L12 9L6 15" stroke="#2e2307" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -399,11 +349,7 @@ export default function Scale() {
                   key={i}
                   onClick={() => jumpTo(i)}
                   className={`transition-all duration-300 rounded-full ${
-                    i === level
-                      ? "w-2.5 h-2.5 bg-[#2e2307]"
-                      : i < level
-                      ? "w-2 h-2 bg-[#2e2307]/30"
-                      : "w-2 h-2 bg-black/10"
+                    i === level ? "w-2.5 h-2.5 bg-[#2e2307]" : i < level ? "w-2 h-2 bg-[#2e2307]/30" : "w-2 h-2 bg-black/10"
                   }`}
                 />
               ))}
@@ -411,8 +357,8 @@ export default function Scale() {
 
             <button
               onClick={next}
-              className="w-11 h-11 rounded-full bg-[#fff6e6] border-none shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[#fffcf0]"
-              style={{ outline: "1px solid rgba(79,34,34,0.5)", outlineOffset: "-3px" }}
+              className="w-12 h-12 rounded-full bg-[#fff6e6] border-none shadow-sm flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-[#fffcf0]"
+              style={{ outline: "1px solid rgba(79,34,34,0.4)", outlineOffset: "-3px" }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path d="M6 3L12 9L6 15" stroke="#2e2307" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -420,13 +366,8 @@ export default function Scale() {
             </button>
           </div>
 
-          <div className="mt-3 mx-auto max-w-xs">
-            <div className="h-1 bg-black/8 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#2e2307]/40 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+          <div className="h-1 bg-black/8 rounded-full overflow-hidden">
+            <div className="h-full bg-[#2e2307]/40 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
           </div>
         </div>
       </div>
