@@ -165,8 +165,8 @@ function computeScore(strokes: Point[][], shape: ShapeKey): number {
     }
   }
 
-  const drawn = ctx.getImageData(0, 0, SIZE, SIZE);
   ctx.fillStyle = "white";
+  ctx.strokeStyle = "white";
   for (const stroke of strokes) {
     if (stroke.length < 2) continue;
     ctx.beginPath();
