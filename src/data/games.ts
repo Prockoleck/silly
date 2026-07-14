@@ -37,8 +37,7 @@ export const games: Game[] = [
   {
     slug: "space-elevator",
     title: "Space Elevator",
-    description: "Ride 400 km from sea level to the edge of space.",
+    description: "Scroll from the ground all the way to space.",
     image: "/games/space-elevator.svg",
-    isNew: true,
   },
 ];

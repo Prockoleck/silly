@@ -1,442 +1,572 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useEffect, useRef } from 'react';
 
-type LineEntry = {
-  top: number;
-  label: string;
-  icon: string;
-  caption: string;
-  side?: "left" | "right" | "center";
-  heading?: boolean;
-};
+const BASE = 'https://neal.fun';
 
-const LINES: LineEntry[] = [
-  { top: 99850, label: "Fireworks", icon: "🎆", caption: "Firework displays reach 150 m", side: "right" },
-  { top: 99750, label: "Peregrine Falcon", icon: "🦅", caption: "Highest recorded bird of prey", side: "left" },
-  { top: 99600, label: "Pigeon", icon: "🕊️", caption: "Pigeons cruise at 65–130 m", side: "left" },
-  { top: 99500, label: "Bumblebee", icon: "🐝", caption: "Highest recorded bumblebee flight", side: "left" },
-  { top: 99300, label: "Skydiving", icon: "🪂", caption: "Skydivers jump at 3,500–4,500 m", side: "right" },
-  { top: 99100, label: "Cumulus Clouds", icon: "☁️", caption: "Fair weather clouds at 200–2,000 m", side: "left" },
-  { top: 98900, label: "Hang Gliding", icon: "🪁", caption: "Hang gliders reach 500–1,500 m", side: "right" },
-  { top: 98700, label: "Stratus Clouds", icon: "🌥️", caption: "Low gray blanket clouds", side: "left" },
-  { top: 98580, label: "Troposphere", icon: "🌡️", caption: "You are here — lowest layer of the atmosphere", side: "center", heading: true },
-  { top: 98400, label: "White Stork", icon: "🕊️", caption: "Migrates up to 900 m", side: "right" },
-  { top: 98200, label: "Lizard", icon: "🦎", caption: "Highest recorded lizard at 1,600 m", side: "right" },
-  { top: 98000, label: "Box Kite", icon: "🪁", caption: "Record altitude 9,800 m", side: "right" },
-  { top: 97800, label: "Light Aircraft", icon: "✈️", caption: "Cruises at 3,000–4,000 m", side: "right" },
-  { top: 97500, label: "Alpine Chough", icon: "🐦", caption: "Nests at 6,500 m", side: "left" },
-  { top: 97200, label: "Cessna", icon: "🛩️", caption: "Max altitude ~4,600 m", side: "right" },
-  { top: 96900, label: "Andean Condor", icon: "🦅", caption: "Soars up to 7,000 m", side: "left" },
-  { top: 96600, label: "Nimbostratus", icon: "☁️", caption: "Rain clouds reaching up to 3,000 m", side: "left" },
-  { top: 96300, label: "Commercial Jet", icon: "🛫", caption: "Cruises at 9,000–12,000 m", side: "right" },
-  { top: 96000, label: "Altocumulus", icon: "☁️", caption: "Mid-level clouds at 2,000–7,000 m", side: "left" },
-  { top: 95600, label: "Cumulonimbus", icon: "⛈️", caption: "Storm clouds reaching 12,000 m", side: "right" },
-  { top: 95200, label: "Bearded Vulture", icon: "🦅", caption: "Highest recorded at 7,300 m", side: "left" },
-  { top: 94800, label: "Monarch Butterfly", icon: "🦋", caption: "Migrates up to 1,800 m", side: "left" },
-  { top: 94400, label: "Mount Everest", icon: "🏔️", caption: "8,848 m — the highest point on Earth", side: "left" },
-  { top: 94000, label: "Cirrus Clouds", icon: "🌤️", caption: "Wispy ice-crystal clouds above 8,000 m", side: "left" },
-  { top: 93600, label: "Concorde", icon: "🛬", caption: "Cruised at 18,000 m at Mach 2", side: "right" },
-  { top: 93200, label: "Rüppell's Vulture", icon: "🦅", caption: "Highest-flying bird at 11,300 m", side: "right" },
-  { top: 92800, label: "Cirrostratus", icon: "☁️", caption: "Ice-crystal veil clouds", side: "left" },
-  { top: 92300, label: "Water Vapor", icon: "💧", caption: "Most water vapor is in the troposphere", side: "center" },
-  { top: 91800, label: "Mil Mi-8", icon: "🚁", caption: "Helicopter ceiling ~6,000 m", side: "left" },
-  { top: 91300, label: "Jet Stream", icon: "🌊", caption: "Strong winds up to 370 km/h at 10 km", side: "center" },
-  { top: 90800, label: "F-15 Eagle", icon: "✈️", caption: "Service ceiling 20,000 m", side: "left" },
-  { top: 90300, label: "Hot Air Balloon", icon: "🎈", caption: "World record 21,027 m", side: "right" },
-  { top: 89700, label: "Oxygen Level", icon: "🫁", caption: "Oxygen drops to 25% at 10,000 m", side: "center" },
-  { top: 89000, label: "U-2 Spy Plane", icon: "🛬", caption: "The Dragon Lady — 21,000 m ceiling", side: "left" },
-  { top: 88400, label: "Pressure", icon: "📊", caption: "Atmospheric pressure is 10% of sea level at 16 km", side: "center" },
-  { top: 87800, label: "Stratosphere", icon: "🌡️", caption: "The stratosphere extends to 50 km", side: "center", heading: true },
-  { top: 87100, label: "Weather Balloon", icon: "🎈", caption: "Reaches 35,000 m before bursting", side: "left" },
-  { top: 86400, label: "Ozone Layer", icon: "🛡️", caption: "Absorbs 97% of harmful UV", side: "center" },
-  { top: 85600, label: "Nacreous Clouds", icon: "🌈", caption: "Polar stratospheric clouds at 20 km", side: "left" },
-  { top: 84800, label: "SR-71 Blackbird", icon: "🛬", caption: "Fastest jet — 3,530 km/h at 26 km", side: "right" },
-  { top: 84000, label: "Bell X-2", icon: "✈️", caption: "First aircraft to reach Mach 3", side: "left" },
-  { top: 83000, label: "Paper Airplane", icon: "✈️", caption: "Record flight 88 km from launch", side: "center" },
-  { top: 82000, label: "Paratrooper", icon: "🪂", caption: "Highest parachute jump 38,969 m", side: "right" },
-  { top: 80800, label: "Felix Baumgartner", icon: "🪂", caption: "Red Bull Stratos — 39,045 m jump", side: "left" },
-  { top: 79500, label: "Space Shuttle", icon: "🚀", caption: "Solid rocket boosters separate at 45 km", side: "left" },
-  { top: 78000, label: "Sound Barrier", icon: "💥", caption: "Speed of sound at sea level: 1,235 km/h", side: "center" },
-  { top: 76500, label: "Mesosphere", icon: "🌌", caption: "The mesosphere — meteors burn up here", side: "center", heading: true },
-  { top: 75000, label: "Noctilucent Clouds", icon: "☁️", caption: "Highest clouds at 80 km — polar mesospheric", side: "left" },
-  { top: 73000, label: "Meteors", icon: "☄️", caption: "Most meteors vaporize at 50–80 km", side: "center" },
-  { top: 71000, label: "Sounding Rocket", icon: "🚀", caption: "Scientific rockets reach 100+ km", side: "right" },
-  { top: 68500, label: "Tsar Bomba", icon: "💥", caption: "Largest nuclear test — 57 megatons at 4 km", side: "center" },
-  { top: 66000, label: "Soviet V-2", icon: "🚀", caption: "First rocket to reach 100 km (1946)", side: "left" },
-  { top: 63000, label: "Red Sprites", icon: "⚡", caption: "Electrical discharges above thunderstorms", side: "left" },
-  { top: 60000, label: "Blue Jets", icon: "⚡", caption: "Upper-atmospheric lightning", side: "center" },
-  { top: 56500, label: "Aurora Borealis", icon: "🌟", caption: "Solar particles glow at 100–500 km", side: "left" },
-  { top: 53000, label: "Thermosphere", icon: "🔥", caption: "Temperature reaches 1,500°C — but feels cold", side: "center", heading: true },
-  { top: 49000, label: "ISS Orbit", icon: "🛰️", caption: "ISS orbits at ~400 km — 28,000 km/h", side: "center" },
-  { top: 44500, label: "Vostok 1", icon: "🚀", caption: "Yuri Gagarin — first human in space, 1961", side: "right" },
-  { top: 39500, label: "Space Shuttle Reentry", icon: "🛸", caption: "Reentry begins at 120 km", side: "left" },
-  { top: 34000, label: "Kármán Line", icon: "🚀", caption: "The official boundary of space — 100 km", side: "center", heading: true },
-  { top: 28000, label: "Satellite Deployment", icon: "🛰️", caption: "Most satellites orbit at 200–1,200 km", side: "center" },
-  { top: 21000, label: "Van Allen Belts", icon: "🌀", caption: "Radiation belts trapped by Earth's magnetic field", side: "center" },
-  { top: 13000, label: "Now Leaving Earth", icon: "🌍", caption: "You've left Earth's atmosphere", side: "center" },
-  { top: 5000, label: "Deep Space", icon: "🌌", caption: "Welcome to the cosmos", side: "center" },
-];
+const styles = `﻿.nuxt-progress{background-color:#000;height:2px;left:0;opacity:1;position:fixed;right:0;top:0;transition:width .1s,opacity .4s;width:0;z-index:999999}.nuxt-progress.nuxt-progress-notransition{transition:none}.nuxt-progress-failed{background-color:red}@font-face{font-family:Roboto;src:url(https://neal.fun/_nuxt/fonts/Roboto-Medium.3ac5d40.woff2)}@font-face{font-family:Roboto;font-weight:700;src:url(https://neal.fun/_nuxt/fonts/Roboto-Bold.a65527f.woff2)}@font-face{font-family:RobotoLight;src:url(https://neal.fun/_nuxt/fonts/Roboto-Light.76fcea7.woff2)}html{font-size:16px;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;background:#fff;box-sizing:border-box;color:#000;font-family:Roboto,sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,Cantarell,Noto Sans}*,:after,:before{box-sizing:border-box;margin:0}.simple-page{background:#f1f2f6}.body-space-elevator{height:100%;position:fixed;width:100%}:root{--page-height:100000px;--full-height:calc(100000px + 100vh)}@font-face{font-family:HandWide;src:url(https://neal.fun/_nuxt/fonts/HandWide-Extrablack.dd5be87.woff2)}@font-face{font-family:HandWide;font-weight:700;src:url(https://neal.fun/_nuxt/fonts/HandWide-Heavy.08adddf.woff2)}#scroll-wrapper[data-v-1905051a]{height:100%;overflow-x:hidden;overflow-y:scroll;overscroll-behavior:none;position:fixed;scroll-behavior:smooth;width:100%}.container[data-v-1905051a]{color:#1c1c1c;font-family:HandWide,sans-serif;height:var(--full-height);letter-spacing:.2px;overflow-x:hidden;transition:color .3s ease-in-out;width:100vw}.container-graphics[data-v-1905051a]{height:var(--page-height);left:0;position:absolute;top:100vh;width:100vw}.container-inner[data-v-1905051a]{height:100%;position:absolute;right:0;top:0;width:calc(100% - 150px)}.site-logo[data-v-1905051a]{left:12px;position:fixed;top:12px;transition:filter .4s ease-in-out;width:135px;z-index:1000}.space-trigger[data-v-1905051a]{height:calc(var(--full-height) - 23725px);top:0}.space-trigger[data-v-1905051a],.start-trigger[data-v-1905051a]{left:0;opacity:0;pointer-events:none;position:absolute;width:100%}.start-trigger[data-v-1905051a]{height:100vh;top:calc(var(--page-height))}.thermosphere-music-trigger[data-v-1905051a]{height:10000px;top:calc(100vh + 90000px)}.stratosphere-music-trigger[data-v-1905051a],.thermosphere-music-trigger[data-v-1905051a]{left:0;opacity:0;pointer-events:none;position:absolute;width:100%}.stratosphere-music-trigger[data-v-1905051a]{height:15000px;top:calc(100vh + 75000px)}.mesosphere-music-trigger[data-v-1905051a]{height:calc(75000px + 100vh)}.mesosphere-music-trigger[data-v-1905051a],.show-sound-trigger[data-v-1905051a]{left:0;opacity:0;pointer-events:none;position:absolute;top:0;width:100%}.show-sound-trigger[data-v-1905051a]{height:94000px}.elevator-ease-area[data-v-1905051a]{height:3000px;top:calc(97000px + 100vh)}.elevator-ease-area[data-v-1905051a],.elevator-shake-area[data-v-1905051a]{opacity:0;pointer-events:none;position:absolute;width:100%}.elevator-shake-area[data-v-1905051a]{height:2350px;top:calc(84500px + 100vh)}.elevator-rain-area[data-v-1905051a]{height:1100px;top:calc(97300px + 100vh)}.elevator-rain-area[data-v-1905051a],.end-trigger[data-v-1905051a]{opacity:0;pointer-events:none;position:absolute;width:100%}.end-trigger[data-v-1905051a]{height:400px;left:0;top:0}.play-music[data-v-1905051a]{background:#fff;background:#d8ecff;border:1px solid #000;border-radius:10px;box-shadow:4px 4px 0 1px rgba(71,155,232,.6);color:#000;cursor:pointer;display:block;font-family:HandWide,sans-serif;font-size:19px;left:calc(21% + 35px);max-width:200px;padding:10px;position:absolute;top:94614px;width:100%;z-index:5}.play-music-icon[data-v-1905051a]{animation:none;height:15px;left:-5px;position:relative;top:1px}.play-music-icon-anim[data-v-1905051a]{animation:musicRotate-1905051a .44s ease-in-out infinite alternate}@keyframes musicRotate-1905051a{0%{transform:rotate(-5deg)}to{transform:rotate(6deg)}}.play-music[data-v-1905051a]:hover{transform:scale(1.05)}.grid[data-v-1905051a]{background:url(https://neal.fun/space-elevator/images/textures/grid-750.webp);background-size:210px 210px;height:var(--full-height);left:0;opacity:.15;top:0;width:100%}.grass[data-v-1905051a],.grid[data-v-1905051a]{pointer-events:none;position:absolute}.grass[data-v-1905051a]{background-image:url(https://neal.fun/space-elevator/images/textures/grass-1400.webp);background-position:50%;background-size:100% 170px;height:170px;left:-150px;top:99830px;width:calc(100% + 170px);z-index:100}.noise[data-v-1905051a]{background:url(https://neal.fun/space-elevator/images/textures/noise.jpeg);background-size:400px 400px;height:100%;left:0;mix-blend-mode:overlay;opacity:.12;pointer-events:none;top:0;width:100%;z-index:10000}.noise[data-v-1905051a],.sound[data-v-1905051a]{position:fixed}.sound[data-v-1905051a]{cursor:pointer;height:21px;right:105px;top:15px;touch-action:manipulation;transition:transform .6s ease-in-out,opacity .6s ease-in-out,filter .4s ease-in-out;z-index:1000}.sound[data-v-1905051a]:hover{transform:scale(1.05)}.sound-muted[data-v-1905051a]{opacity:.5}.sound-hide[data-v-1905051a]{opacity:0;pointer-events:none;transform:scale(1.2)}.is-space .sound[data-v-1905051a]{filter:invert(1)}.title[data-v-1905051a]{display:block;left:calc(50% - 75px);position:absolute;top:calc(100000px - 81vh);transform:translateX(-50%)}.title-img[data-v-1905051a]{animation:none;display:block;height:450px;margin-left:auto;margin-right:auto;-o-object-fit:contain;object-fit:contain;width:95vw}.is-start .title-img[data-v-1905051a]{animation:rotate-1905051a 3s ease-in-out infinite alternate}@keyframes rotate-1905051a{0%{transform:rotate(-1deg)}to{transform:rotate(1deg)}}.end-screen[data-v-1905051a]{align-items:center;display:flex;height:100vh;justify-content:center;left:-75px;position:absolute;top:-100vh;width:100%}.end-screen-inner[data-v-1905051a]{color:#fff;text-align:center}.end-credits[data-v-1905051a]{text-shadow:0 0 10px #000}.end-credit[data-v-1905051a]{font-size:30px;margin-bottom:8px;margin-top:10px}.end-credit-2[data-v-1905051a]{font-size:18px;opacity:.75}.end-screen[data-v-1905051a]{opacity:0;transition:opacity 1.3s ease-in-out .1s}.is-end .end-screen[data-v-1905051a]{opacity:1}.end-title[data-v-1905051a]{filter:drop-shadow(0 0 10px rgb(0,0,0,.9));height:375px;width:100%}.scroll-up[data-v-1905051a]{color:#000;font-size:32px;margin-top:15px;text-align:center}.bmc[data-v-1905051a]{align-items:center;background:#fff;border-radius:5px;color:#000;display:flex;filter:drop-shadow(0 0 10px rgb(0,0,0,.9));font-size:20px;height:44px;justify-content:center;margin:80px auto 20px;-webkit-text-decoration:none;text-decoration:none;width:164px}.bmc-icon[data-v-1905051a]{height:25px;left:-2px;margin-right:4px;position:relative;top:-3px}.end-browse[data-v-1905051a]{color:#fff;display:block;font-size:20px;text-shadow:0 0 10px #000}.bmc[data-v-1905051a]:hover,.end-browse[data-v-1905051a]:hover{transform:scale(1.05)}.scroll-up-icon[data-v-1905051a]{animation:none;height:24px;position:relative}.is-start .scroll-up-icon[data-v-1905051a]{animation:scrollUp-1905051a .6s ease-in-out infinite alternate}@keyframes scrollUp-1905051a{0%{transform:translateY(2px)}to{transform:translateY(-2px)}}.scroll-up-text[data-v-1905051a]{padding:0 5px}@media only screen and (max-width:1200px){.grass[data-v-1905051a]{background-image:url(https://neal.fun/space-elevator/images/textures/grass-1200.webp)}}@media only screen and (max-width:950px){.title-img[data-v-1905051a]{max-width:600px}.scroll-up[data-v-1905051a]{font-size:30px;margin-top:10px}.grass[data-v-1905051a]{background-image:url(https://neal.fun/space-elevator/images/textures/grass-1000.webp)}}@media only screen and (max-height:950px){.title-img[data-v-1905051a]{height:445px}.title[data-v-1905051a]{top:calc(100000px - 85vh)}}@media only screen and (max-height:880px){.title-img[data-v-1905051a]{height:410px}.title[data-v-1905051a]{top:calc(100000px - 88vh)}}@media only screen and (max-height:820px){.title-img[data-v-1905051a]{height:400px}.title[data-v-1905051a]{top:calc(100000px - 92vh)}.bmc[data-v-1905051a]{margin-top:50px}}@media only screen and (max-height:700px){.title-img[data-v-1905051a]{height:310px}.end-title[data-v-1905051a]{height:340px}.end-credits[data-v-1905051a]{text-shadow:0 0 4px #000}.end-credit[data-v-1905051a]{font-size:27px;margin-bottom:6px;margin-top:8px}.end-credit-2[data-v-1905051a]{font-size:17px}.bmc[data-v-1905051a],.end-browse[data-v-1905051a]{font-size:19px}.grass[data-v-1905051a]{background-image:url(https://neal.fun/space-elevator/images/textures/grass-900.webp)}}@media only screen and (max-width:800px){.title[data-v-1905051a]{left:calc(50% - 37.5px);transform:translate(-50%)}.title-img[data-v-1905051a]{height:auto;max-width:min(90vw,550px)}.scroll-up[data-v-1905051a]{font-size:28px}.container-inner[data-v-1905051a]{width:calc(100% - 70px)}.grid[data-v-1905051a]{background-size:142px 142px;opacity:.15}.site-logo[data-v-1905051a]{width:105px}.end-screen[data-v-1905051a]{left:-35px}.end-title[data-v-1905051a]{height:auto;margin-top:-20vh;width:calc(100vw - 70px)}.sound[data-v-1905051a]{right:90px}.elevator-rain-area[data-v-1905051a]{height:1200px;top:calc(97200px + 100vh)}}@media only screen and (max-width:700px){.play-music[data-v-1905051a]{background:#c9e5ff;font-size:16px;left:calc(50% - 99px);max-width:190px;top:94618px}}@media only screen and (max-width:500px){.title[data-v-1905051a]{top:99380px}}@media only screen and (max-width:800px) and (max-height:700px){.title[data-v-1905051a]{top:99410px}}@media only screen and (max-width:800px) and (max-height:600px){.title[data-v-1905051a]{top:99450px}.grass[data-v-1905051a]{background-size:100% 120px;height:120px;top:99880px}}@media only screen and (max-width:800px) and (max-height:550px){.title[data-v-1905051a]{top:99500px}}.bg[data-v-fcf5069e]{height:100%;left:0;position:fixed;top:0;width:100%}.bg-placeholder[data-v-fcf5069e]{background:linear-gradient(180deg,#24a5f8,#bef0ff)!important}.instruments[data-v-7bbdcafe]{font-family:HandWide,sans-serif}.altitude[data-v-7bbdcafe]{background:#1c1c1c;border-top-left-radius:8px;border-top-right-radius:8px;bottom:0;left:50%;position:fixed;transform:translate(-50%,100%);z-index:100;grid-gap:1px;border-left:1px solid #1c1c1c;border-right:1px solid #1c1c1c;border-top:1px solid #1c1c1c;overflow:hidden;transition:transform .3s ease-in-out}.altitude-digit[data-v-7bbdcafe],.altitude[data-v-7bbdcafe]{contain:layout;display:flex}.altitude-digit[data-v-7bbdcafe]{align-items:center;background:#fff;color:#1c1c1c;font-size:23px;font-weight:700;height:36px;justify-content:center;padding-top:5px;width:32px}.altitude-digit-disabled[data-v-7bbdcafe]{color:rgba(0,0,0,.1)}.show-altitude[data-v-7bbdcafe]{transform:translateX(-50%)}.temperature[data-v-7bbdcafe]{color:#000;contain:layout;cursor:pointer;font-size:21px;position:fixed;right:27px;top:12px;touch-action:manipulation;transition:color .3s ease-in-out;z-index:100}.is-space .temperature[data-v-7bbdcafe]{color:#fff}.temperature-icon[data-v-7bbdcafe]{height:21px;position:relative;right:3px;top:3px;transition:filter .3s ease-in-out}.temperature-number[data-v-7bbdcafe]{contain:layout}.is-space .temperature-icon[data-v-7bbdcafe]{filter:invert(1)}@media only screen and (max-width:700px){.altitude-digit[data-v-7bbdcafe]{font-size:21px;height:32px;width:28px}.temperature[data-v-7bbdcafe]{right:15px}}:root{--elevator-bottom-scale:0%;--elevator-top-scale:800%}.elevator-container[data-v-4144d7dd]{contain:layout;height:100%;left:15px;pointer-events:none;position:fixed;top:0;width:70px;z-index:15}.elevator-section[data-v-4144d7dd]{bottom:0;left:50%;position:absolute;transform:translate(-50%,-60px);transition:transform .2s ease-out;width:100%}.elevator-section[data-v-4144d7dd]:before{background:linear-gradient(0deg,#000,transparent 85%);top:0;transform:translate(-50%,-100%) scaleY(var(--elevator-top-scale));transform-origin:bottom center}.elevator-section[data-v-4144d7dd]:after,.elevator-section[data-v-4144d7dd]:before{contain:layout;content:"";height:100px;left:50%;position:absolute;transition:filter .4s ease-in-out;width:1px;z-index:10}.elevator-section[data-v-4144d7dd]:after{background:linear-gradient(180deg,#000,transparent);top:100%;transform:translate(-50%,-5px) scaleY(var(--elevator-bottom-scale));transform-origin:top center}.elevator-img[data-v-4144d7dd]{image-rendering:crisp-edges;width:100%}.is-space .elevator-section[data-v-4144d7dd]:after,.is-space .elevator-section[data-v-4144d7dd]:before{filter:invert(1)}.shake[data-v-4144d7dd]{animation:shake-4144d7dd 1s ease-in-out infinite}.glass[data-v-4144d7dd]{background:hsla(0,0%,100%,.2);height:calc(100% - 20px);left:0;top:10px;width:100%;z-index:-1}.glass[data-v-4144d7dd],.light[data-v-4144d7dd]{position:absolute}.light[data-v-4144d7dd]{background-color:#fff;border-radius:5px;height:4px;left:50%;top:4px;transform:translateX(-50%);width:10px}.rain-drops[data-v-4144d7dd]{background:url(https://neal.fun/space-elevator/icons/rain-drops.svg);background-repeat:repeat-x;background-size:14px 9px;height:9px;left:0;left:3.5%;position:absolute;top:-9px;width:93%}.is-end .light[data-v-4144d7dd]{background-color:#ffeda5;filter:drop-shadow(0 0 3px rgb(255,237,165))}@keyframes shakeCable-4144d7dd{0%{rotate:0deg}50%{rotate:.4deg}to{rotate:0deg}}@keyframes shake-4144d7dd{0%{rotate:0deg}50%{rotate:4deg}to{rotate:0deg}}@keyframes shakeSmall-4144d7dd{0%{rotate:0deg}50%{rotate:2deg}to{rotate:0deg}}@keyframes unshake-4144d7dd{to{transform:translate(-50%,50%) rotate(0)}}@media only screen and (max-width:800px){.elevator-container[data-v-4144d7dd]{left:8px;width:52px}.cable[data-v-4144d7dd]{width:1px}.light[data-v-4144d7dd]{top:3px}}.character-wrapper[data-v-7907fb68]{bottom:7px;left:50%;position:absolute;transform:translateX(-50%);width:30px}.scarf[data-v-7907fb68]{left:4px;position:absolute;top:25px;width:28px;z-index:3}.has-suit .scarf[data-v-7907fb68]{top:28px}.suit[data-v-7907fb68]{left:-4px;position:absolute;top:-2px;width:38px}.space-suit-2[data-v-7907fb68]{top:-3px}@media only screen and (max-width:800px){.character-wrapper[data-v-7907fb68]{bottom:5px;width:22px}.suit[data-v-7907fb68]{left:-3px;width:28px}.scarf[data-v-7907fb68]{top:19px;width:19px}.has-suit .scarf[data-v-7907fb68]{top:21px}}.site-logo[data-v-4b4ecb6e]{cursor:pointer;-webkit-tap-highlight-color:transparent}.site-logo-img[data-v-4b4ecb6e]{width:100%;-webkit-user-drag:none}@media (hover:hover){.site-logo[data-v-4b4ecb6e]:hover{transform:scale(1.033)}.site-logo[data-v-4b4ecb6e]:active{transform:scale(1)}}@media (hover:none){.site-logo[data-v-4b4ecb6e]:active{transform:scale(1.033)}}.clouds[data-v-77983da6]{height:var(--page-height);left:0;overflow-x:hidden;pointer-events:none;position:absolute;width:100vw;z-index:1}:root{--cloud-speed:1}@media only screen and (max-width:1100px){:root{--cloud-speed:0.75}}@media only screen and (max-width:900px){:root{--cloud-speed:0.6}}@media only screen and (max-width:700px){:root{--cloud-speed:0.4}}.cloud[data-v-48115f6a]{left:50%;pointer-events:none;position:absolute;transform:translateX(-50%)}.cloud-animated[data-v-48115f6a]{--anim-duration:190s;--anim-offset:-150s;animation-delay:calc(-150s*var(--cloud-speed));animation-delay:calc(var(--anim-offset)*var(--cloud-speed));animation-direction:alternate-reverse;animation-duration:calc(190s*var(--cloud-speed));animation-duration:calc(var(--anim-duration)*var(--cloud-speed));animation-iteration-count:infinite;animation-name:move-48115f6a;animation-play-state:paused;animation-timing-function:linear}.play-anim[data-v-48115f6a]{animation-play-state:running}.cumulus[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:190s;--anim-offset:-150s;max-width:1400px;top:calc(var(--page-height) - 800px);width:80vw}.stratus[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:200s;--anim-offset:-300s;top:calc(var(--page-height) - 1500px);width:75vw}.altostratus[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:190s;--anim-offset:-350s;max-width:1100px;top:calc(var(--page-height) - 2920px)}.altostratus2[data-v-48115f6a],.altostratus[data-v-48115f6a]{transform:translate(-50%,-100%);transform:translate(-50%,var(--offset-y));width:90vw}.altostratus2[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:250s;--anim-offset:-150s;max-width:1300px;top:calc(var(--page-height) - 2900px)}.altocumulus[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:-50%;--offset-y:-50%;--anim-duration:70s;--anim-offset:-150s;max-width:1300px;top:calc(var(--page-height) - 4900px);transform:translate(-50%,-50%);transform:translate(-50%,var(--offset-y));width:90vw}.cirrus[data-v-48115f6a]{--start-x:-50%;--end-x:calc(-50% + 20vw);--offset-y:-100%;max-width:1300px;min-width:1000px;top:calc(var(--page-height) - 7000px);transform:translate(-20%,-100%);transform:translate(-20%,var(--offset-y))}.cirrus2[data-v-48115f6a],.cirrus[data-v-48115f6a]{opacity:.85;width:100vw}.cirrus2[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:170s;--anim-offset:0s;max-width:1500px;min-width:1300px;top:calc(var(--page-height) - 6000px)}.cirrus2[data-v-48115f6a],.cirrus3[data-v-48115f6a]{transform:translate(-50%,-100%);transform:translate(-50%,var(--offset-y))}.cirrus3[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:100s;--anim-offset:-100s;max-width:1700px;min-width:1500px;top:calc(var(--page-height) - 5600px);width:140vw}.cirrus4[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;max-width:1300px;min-width:1100px;opacity:.6;top:calc(var(--page-height) - 6900px);transform:translate(-80%,-100%);transform:translate(-80%,var(--offset-y));width:100vw}.nimbostratus[data-v-48115f6a]{top:calc(var(--page-height) - 2370px);transform:translate(-79vw,-60%);width:75vw}.nimbostratus2[data-v-48115f6a]{transform:translate(-50%,-60%)}.nimbostratus2[data-v-48115f6a],.nimbostratus3[data-v-48115f6a]{top:calc(var(--page-height) - 2370px);width:80vw}.nimbostratus3[data-v-48115f6a]{transform:translateY(-60%)}.cumulonimbus[data-v-48115f6a]{left:auto;max-width:1600px;right:0;top:calc(var(--page-height) - 3350px);transform:translateY(-100%);width:100vw}.cirrostratus[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:100s;--anim-offset:-100s;min-width:2300px;opacity:.9;top:calc(var(--page-height) - 9100px);transform:translate(-50%,-100%);transform:translate(-50%,var(--offset-y));width:140vw}.cirrostratus2[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:100s;--anim-offset:-200s;top:calc(var(--page-height) - 9200px)}.cirrostratus2[data-v-48115f6a],.cirrostratus3[data-v-48115f6a]{min-width:2300px;opacity:.75;transform:translate(-50%,-100%);transform:translate(-50%,var(--offset-y));width:140vw}.cirrostratus3[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:100s;--anim-offset:10s;top:calc(var(--page-height) - 8500px)}.cirrostratus4[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-100%;--anim-duration:100s;--anim-offset:-100s;min-width:2000px;opacity:.5;top:calc(var(--page-height) - 10200px);transform:translate(-50%,-100%);transform:translate(-50%,var(--offset-y));width:140vw}.cirrostratus5[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-50%;--anim-duration:110s;--anim-offset:-100s;min-width:1000px;top:calc(var(--page-height) - 5500px);width:140vw}.cirrostratus5[data-v-48115f6a],.cirrostratus6[data-v-48115f6a]{opacity:.4;transform:translate(-50%,-50%);transform:translate(-50%,var(--offset-y))}.cirrostratus6[data-v-48115f6a]{--start-x:-50%;--end-x:calc(-50% + 20vw);--offset-y:-50%;--anim-duration:300s;--anim-offset:-100s;min-width:1200px;top:calc(var(--page-height) - 6600px);width:160vw}.noctilucent[data-v-48115f6a]{--start-x:-50%;--end-x:calc(-50% + 20vw);--anim-duration:10s;--anim-offset:-100s;max-width:2000px;min-width:1900px;opacity:.9;top:calc(var(--page-height) - 76700px);width:120vw}.noctilucent2[data-v-48115f6a]{max-width:2200px;min-width:1800px;opacity:.85;top:calc(var(--page-height) - 76900px);width:130vw}.nacreous[data-v-48115f6a]{--start-x:calc(-50% - 20vw);--end-x:calc(-50% + 20vw);--offset-y:-50%;--anim-duration:200s;--anim-offset:-175s;min-width:1400px;top:calc(var(--page-height) - 20300px);transform:translate(-50%,-50%);transform:translate(-50%,var(--offset-y));width:90vw}.mount-everest[data-v-48115f6a]{animation-duration:0s;top:calc(var(--page-height) - 8820px);transform:translateX(-50vw);width:100vw}.sprite[data-v-48115f6a]{left:50%;max-width:800px;min-width:730px;top:calc(var(--page-height) - 70800px);transform:translateX(-50%);width:50vw}.blue-jet[data-v-48115f6a]{height:1100px;left:30%;top:calc(var(--page-height) - 49500px)}.marker[data-v-48115f6a]{height:1px;opacity:0;pointer-events:none;width:100%}@keyframes move-48115f6a{0%{transform:translate(var(--start-x),var(--offset-y))}to{transform:translate(var(--end-x),var(--offset-y))}}@media only screen and (max-width:1500px){.nimbostratus2[data-v-48115f6a],.nimbostratus3[data-v-48115f6a],.nimbostratus[data-v-48115f6a]{top:calc(var(--page-height) - 2450px)}}@media only screen and (max-width:1300px){.nimbostratus2[data-v-48115f6a],.nimbostratus3[data-v-48115f6a],.nimbostratus[data-v-48115f6a]{top:calc(var(--page-height) - 2500px)}}@media only screen and (max-width:1250px){.sprite[data-v-48115f6a]{transform:translate(-50%,-8%);width:60vw}}@media only screen and (max-width:1100px){.sprite[data-v-48115f6a]{transform:translate(-50%,-5%);width:67vw}.nimbostratus2[data-v-48115f6a],.nimbostratus3[data-v-48115f6a],.nimbostratus[data-v-48115f6a]{top:calc(var(--page-height) - 2600px)}}@media only screen and (max-width:1000px){.sprite[data-v-48115f6a]{width:75vw}}@media only screen and (max-width:700px){.altocumulus[data-v-48115f6a],.altostratus[data-v-48115f6a],.cirrostratus2[data-v-48115f6a],.cirrostratus3[data-v-48115f6a],.cirrostratus4[data-v-48115f6a],.cirrostratus5[data-v-48115f6a],.cirrostratus6[data-v-48115f6a],.cirrostratus[data-v-48115f6a],.cirrus2[data-v-48115f6a],.cirrus3[data-v-48115f6a],.cirrus4[data-v-48115f6a]{animation:none}.cumulus[data-v-48115f6a]{width:250vw}.cumulus3[data-v-48115f6a]{width:200vw}.nimbostratus2[data-v-48115f6a],.nimbostratus3[data-v-48115f6a],.nimbostratus[data-v-48115f6a]{top:calc(var(--page-height) - 2700px);width:110vw}.altostratus2[data-v-48115f6a],.altostratus[data-v-48115f6a],.stratus[data-v-48115f6a]{width:250vw}.cumulonimbus[data-v-48115f6a]{transform:translate(15%,-110%);width:200vw}.cirrus[data-v-48115f6a]{width:220vw}.cirrus2[data-v-48115f6a],.cirrus3[data-v-48115f6a]{width:250vw}.cirrus3[data-v-48115f6a]{top:calc(var(--page-height) - 5500px)}.altocumulus[data-v-48115f6a]{opacity:.5;top:calc(var(--page-height) - 5050px)}.altocumulus2[data-v-48115f6a]{width:250vw}.nacreous[data-v-48115f6a]{top:calc(var(--page-height) - 20000px);width:280vw}.cirrostratus[data-v-48115f6a]{top:calc(var(--page-height) - 10000px);width:200vw}.cirrostratus2[data-v-48115f6a]{top:calc(var(--page-height) - 9000px);width:200vw}.noctilucent2[data-v-48115f6a],.noctilucent[data-v-48115f6a]{min-width:1700px;width:250vw}.sprite[data-v-48115f6a]{min-width:auto;transform:translate(-50%,5%);width:130vw}}.selection-wrapper[data-v-03caf5b2]{display:flex;position:absolute;grid-gap:16px;grid-template-columns:1fr;z-index:10}.option-wrapper[data-v-03caf5b2]{align-items:center;background:#fff;border:1px solid #000;border-radius:10px;box-shadow:3px 3px 0 2px rgba(71,155,232,.6);cursor:pointer;display:flex;height:60px;justify-content:center;touch-action:manipulation;width:60px}.option-img[data-v-03caf5b2]{pointer-events:none;width:40px}.scarf .option-img[data-v-03caf5b2]{padding:2px}.scarf[data-v-03caf5b2]{left:calc(7% + 39px);top:96375px}.suit[data-v-03caf5b2]{left:calc(50% - 75px);top:88229px;transform:translateX(-50%)}.suit .option-wrapper[data-v-03caf5b2]{height:100px;width:60px}@media (hover:hover){.option-wrapper[data-v-03caf5b2]:hover{transform:scale(1.05)}.option-wrapper[data-v-03caf5b2]:active{box-shadow:none;transform:translate(3px,3px)}}@media (hover:none){.option-selected[data-v-03caf5b2]{box-shadow:none!important;opacity:.65;transform:translate(2px,2px)}}@media only screen and (max-width:1100px){.scarf[data-v-03caf5b2]{left:calc(5% + 39px)}}@media only screen and (max-width:700px){.selection-wrapper[data-v-03caf5b2]{grid-gap:9px}.option-wrapper[data-v-03caf5b2]{box-shadow:2px 2px 0 2px rgba(71,155,232,.6)}.suit .option-wrapper[data-v-03caf5b2]{height:90px;width:50px}.option-img[data-v-03caf5b2]{width:30px}.suit[data-v-03caf5b2]{top:88130px}.scarf[data-v-03caf5b2],.suit[data-v-03caf5b2]{left:calc(50% - 4px)}.scarf[data-v-03caf5b2]{transform:translateX(-50%)}.scarf .option-img[data-v-03caf5b2]{padding:0}}:root{--scale-factor:1}@media only screen and (max-width:1200px){:root{--scale-factor:0.97}}@media only screen and (max-width:1100px){:root{--scale-factor:0.95}}@media only screen and (max-width:975px){:root{--scale-factor:0.93}}@media only screen and (max-width:800px){:root{--scale-factor:0.79}}@media only screen and (max-width:500px){:root{--scale-factor:0.73}}.line[data-v-1682085a]{font-size:19px;line-height:1.3em;position:absolute;text-align:center;transform:translateY(-100%);z-index:4}.heading .line-caption[data-v-1682085a]{background:#fff;border:1px solid #1c1c1c;border-radius:10px;color:#1c1c1c;font-size:28px;letter-spacing:.6px;margin-left:auto;margin-right:auto;max-width:245px;padding:13px 8px 12px;text-transform:uppercase}.heading.line-space .line-caption[data-v-1682085a]{border:none;box-shadow:0 0 7px 0 hsla(0,0%,100%,.8)}.heading.line[data-v-1682085a]{right:0;width:100vw}.heading.line[data-v-1682085a]:before{background-image:linear-gradient(90deg,#1c1c1c 40%,hsla(0,0%,100%,0) 0);background-position:bottom;background-repeat:repeat-x;background-size:12px 1px;content:"";display:block;height:1px;left:0;position:absolute;top:50%;transform:translateY(-50%);width:100%;z-index:-1}.heading.line-space[data-v-1682085a]:before{background-image:linear-gradient(90deg,#fff 40%,hsla(0,0%,100%,0) 0);filter:drop-shadow(0 0 3px rgba(255,255,255,1)) drop-shadow(0 0 2px rgba(255,255,255,.6))}.line-subcaption[data-v-1682085a]{font-size:15px;line-height:1.1em;max-width:200px;opacity:.5}.line-icon[data-v-1682085a],.line-subcaption[data-v-1682085a]{margin-left:auto;margin-right:auto}.line-icon[data-v-1682085a]{--width:150px;display:block;margin-bottom:10px;width:calc(150px*var(--scale-factor));width:calc(var(--width)*var(--scale-factor));z-index:4}.caption[data-v-1682085a]{background:#fff;border:1px solid #000;border-radius:10px;box-shadow:2px 2px 4px 1px rgba(0,0,0,.05);color:#000;line-height:1.2em;padding:5px 15px 6px}.caption.line-space[data-v-1682085a]{border:none;box-shadow:0 0 10px 0 hsla(0,0%,100%,.6)}.line-space .line-caption[data-v-1682085a]{text-shadow:0 0 6px hsla(0,0%,100%,.65)}.center[data-v-1682085a]{left:calc(50% - 75px);transform:translateX(-50%)}.fireworks[data-v-1682085a]{right:9%;transform:translateY(-250px)}.mallard-migrate[data-v-1682085a]{left:7%;transform:translateY(-50px)}.pterodactyl[data-v-1682085a]{right:13%;transform:translateY(-170px)}.cumulus-desc[data-v-1682085a]{left:5%;max-width:450px}.mil-v-12[data-v-1682085a]{right:15%}.hang-gliding[data-v-1682085a]{right:10%;transform:translateY(-250px)}.pigeon[data-v-1682085a]{left:10%;transform:translateY(-300px)}.skydiving[data-v-1682085a]{right:15%;transform:translateY(50px)}.white-stork[data-v-1682085a]{right:24%}.cessna[data-v-1682085a]{right:30%}.eagle[data-v-1682085a]{left:30%;transform:translateY(-400px)}.lizard[data-v-1682085a]{right:20%;transform:translateY(0)}.zeppelin[data-v-1682085a]{right:25%;transform:translateY(-120px)}.spider[data-v-1682085a]{left:20%;transform:translateY(-180px)}.vega-5b[data-v-1682085a]{left:25%;transform:translateY(50px)}.bell-47[data-v-1682085a]{right:20%;transform:translateY(-300px)}.bell-47 .line-subcaption[data-v-1682085a]{max-width:120px}.godwid[data-v-1682085a]{left:35%;transform:translateY(-50px)}.sandwort[data-v-1682085a]{right:15%;transform:translateY(-150px)}.highest-mouse[data-v-1682085a]{right:15%}.military-parachute[data-v-1682085a]{left:50%}.whooper-swan[data-v-1682085a]{left:40%}.yak[data-v-1682085a]{left:11%;transform:translateY(-85px)}.oxygen[data-v-1682085a]{left:50%}.passenger-jet[data-v-1682085a]{right:25%;transform:translateY(110px)}.mountain-goat[data-v-1682085a]{right:10%;transform:translateY(140px)}.mount-everest-peak[data-v-1682085a]{max-width:160px;right:39.3%;transform:translateY(-28px)}.highest-ejection[data-v-1682085a]{left:25%}.concorde[data-v-1682085a]{right:20%}.f-22[data-v-1682085a]{left:10%;transform:translateY(100%)}.an-225[data-v-1682085a]{right:20%;transform:translateY(-160px)}.spitfire[data-v-1682085a]{left:25%;transform:translateY(-50px)}.stratosphere-ozone[data-v-1682085a],.stratosphere-temperature[data-v-1682085a]{max-width:325px}.in-trophosphere[data-v-1682085a],.water-vapor[data-v-1682085a]{left:50%;max-width:270px;transform:translateX(-50%)}.bald-eagle[data-v-1682085a]{left:50%}.alpine-chough[data-v-1682085a]{left:5%}.cumolonimbus-desc[data-v-1682085a]{left:6%;max-width:340px}.altocumulus-desc[data-v-1682085a]{left:30%;max-width:300px}.bumblebee[data-v-1682085a]{left:40%;transform:translateY(-50px)}.mallard[data-v-1682085a]{left:20%}.cirrus-desc[data-v-1682085a]{left:25%}.bearded-vulture[data-v-1682085a]{left:30%}.box-kite[data-v-1682085a]{right:37%;transform:translateY(120px)}.cirrostratus-desc[data-v-1682085a]{left:30%;max-width:240px}.crane[data-v-1682085a]{left:15%;transform:translateY(450px)}.sa-315[data-v-1682085a]{left:25%}.f-15-eagle[data-v-1682085a]{left:20%;transform:translateY(0)}.jet-stream-desc[data-v-1682085a]{max-width:400px}.jet-stream-worry[data-v-1682085a]{max-width:460px}.caproni[data-v-1682085a]{right:26%}.armstrong[data-v-1682085a]{max-width:400px;right:31%}.zephyr[data-v-1682085a]{left:50%}.perlan[data-v-1682085a]{right:30%}.douglas[data-v-1682085a]{left:20%}.douglas-dc-3[data-v-1682085a]{right:13%}.castle-romeo[data-v-1682085a],.mesosphere-first[data-v-1682085a]{left:50%}.mesosphere-air[data-v-1682085a]{max-width:360px}.blue-jet[data-v-1682085a]{left:50%}.nasa-x-43[data-v-1682085a]{left:50%;transform:translateY(200px)}.pressure[data-v-1682085a]{max-width:400px}.tsar-bomba[data-v-1682085a]{max-width:360px}.mil-mi-8[data-v-1682085a]{left:25%;transform:translateY(-200px)}.nimbostratus-desc[data-v-1682085a]{left:20%;max-width:max(200px,min(50vw,450px))}.nacreous-desc[data-v-1682085a]{left:23%;max-width:445px}.pompeii[data-v-1682085a]{max-width:330px}.freefall-desc[data-v-1682085a]{left:35%;max-width:410px}.felix[data-v-1682085a]{left:15%;transform:translateY(-100px)}.hummingbird[data-v-1682085a]{left:10%;transform:translateY(-120px)}.oxygen-desc[data-v-1682085a]{max-width:225px;right:30%}.pick-scarf[data-v-1682085a]{left:7%;max-width:292px}.bell-x-2-desc[data-v-1682085a]{left:35%;max-width:550px}.bell-x-2[data-v-1682085a]{left:15%}.russia-meteor[data-v-1682085a]{max-width:500px;right:30%}.noctilucent-desc[data-v-1682085a]{max-width:450px}.mesosphere-temperature[data-v-1682085a]{left:calc(50% - 125px);transform:translate(-50%)}.sound[data-v-1682085a]{max-width:340px}.sounding-rocket[data-v-1682085a]{left:20%}.sounding-rocket-desc[data-v-1682085a]{max-width:420px;right:25%}.first-hydrogen[data-v-1682085a]{right:20%}.sprite-desc[data-v-1682085a]{left:5%;max-width:360px}.sprite-desc2[data-v-1682085a]{max-width:330px;right:11%}.blue-jet-desc[data-v-1682085a]{left:calc(30% + 250px);max-width:300px}.ussr-1[data-v-1682085a]{left:17%;transform:translateY(-150px)}.bell-x-1[data-v-1682085a]{right:25%;transform:translateY(-80px)}.sr-71[data-v-1682085a]{right:22%;transform:translateY(100px)}.f-35[data-v-1682085a]{left:10%;transform:translateY(0)}.paratrooper[data-v-1682085a]{right:30%;transform:translateY(-200px)}.hotair-balloon[data-v-1682085a]{right:12%;transform:translateY(-50px)}.bleriot-xi[data-v-1682085a]{right:30%;transform:translateY(-200px)}.flamingo[data-v-1682085a]{left:10%;transform:translateY(0)}.learjet-45[data-v-1682085a]{right:20%;transform:translateY(500px)}.paper-airplane-desc[data-v-1682085a]{left:40%;max-width:300px}.paper-airplane[data-v-1682085a]{left:10%;transform:translateY(0)}.weather-balloon[data-v-1682085a]{left:15%}.space-shuttle[data-v-1682085a]{left:15%;transform:translateY(-300px)}.ruppell-bird[data-v-1682085a]{right:20%}.party-balloon-desc[data-v-1682085a]{left:16%;max-width:370px}.music-desc[data-v-1682085a]{left:21%;max-width:273px}.monarch-butterfly[data-v-1682085a]{left:20%}.bar-goose[data-v-1682085a]{left:10%}.p-80[data-v-1682085a]{right:28%}.airbus-a380[data-v-1682085a]{left:20%}.andean-condor[data-v-1682085a]{left:45%;transform:translateY(-50px)}.p-51[data-v-1682085a]{right:27%}.v-2[data-v-1682085a]{left:30%}.meteors-desc[data-v-1682085a]{max-width:420px}.boeing-247[data-v-1682085a]{left:20%}.welcome-desc[data-v-1682085a]{left:7%;max-width:255px}.sky-black[data-v-1682085a]{left:50%;max-width:350px;transform:translateX(-100%)}.sr-71-desc[data-v-1682085a]{left:15%;max-width:350px}.castle-bravo[data-v-1682085a],.mesosphere-welcome[data-v-1682085a]{max-width:310px}.coldest[data-v-1682085a]{max-width:450px}.sopwith-camel[data-v-1682085a]{left:10%}.explorer-2[data-v-1682085a]{left:15%;transform:translateY(0)}.u-2[data-v-1682085a]{left:30%}.helios[data-v-1682085a]{left:10%}.project-excelsior[data-v-1682085a]{right:30%;transform:translateY(50px)}.alan[data-v-1682085a]{right:30%}.elevator-cheaper[data-v-1682085a],.elevator-feasible[data-v-1682085a],.elevator-hard[data-v-1682085a]{max-width:320px}.space-shuttle-eject[data-v-1682085a]{left:20%}.space-shuttle-heat[data-v-1682085a]{left:30%;transform:translateY(-450px)}.space-shuttle[data-v-1682085a]{transform:translateY(calc(-100% - 140px))}.space-shuttle-icon[data-v-1682085a]{transform:translateY(calc(100% + 65px))}.space-shuttle-heat-icon[data-v-1682085a]{margin-bottom:-18px}.sutter[data-v-1682085a]{right:30%;transform:translateY(20px)}.aurora-desc2[data-v-1682085a],.aurora-desc[data-v-1682085a]{max-width:320px}.vampire-mk-I[data-v-1682085a]{left:10%;transform:translateY(230px)}.sud-ouest[data-v-1682085a]{left:10%}.f-104[data-v-1682085a]{right:30%}.falcon-9[data-v-1682085a],.saturn-v[data-v-1682085a]{left:30%}.x-15[data-v-1682085a]{left:20%}.su-9[data-v-1682085a]{left:10%}.death-zone[data-v-1682085a]{max-width:375px}.karman-desc[data-v-1682085a]{max-width:310px}.thermosphere-temp[data-v-1682085a]{max-width:410px}.thermosphere-reach[data-v-1682085a]{max-width:300px}.highest-hot-air[data-v-1682085a]{left:15%}.project-excelsior-desc[data-v-1682085a]{left:calc(50% - 360px);max-width:360px}.osprey[data-v-1682085a]{left:18%}.bu60[data-v-1682085a]{left:20%}.party-balloons[data-v-1682085a]{right:calc(50% - 160px)}.thermosphere-welcome[data-v-1682085a]{max-width:290px}.vss-unity[data-v-1682085a]{left:20%}.karman-line[data-v-1682085a]{transform:translateY(10px)}.vostok-1[data-v-1682085a]{right:25%}.elevator-speed[data-v-1682085a]{max-width:435px}@media only screen and (max-width:1500px){.mount-everest-peak[data-v-1682085a]{right:36.5%}}@media only screen and (max-width:1350px){.cirrus-desc[data-v-1682085a],.mil-mi-8[data-v-1682085a]{left:20%}.sounding-rocket-desc[data-v-1682085a]{right:20%}.sprite-desc[data-v-1682085a]{left:2%}}@media only screen and (max-width:1250px){.bald-eagle[data-v-1682085a]{transform:translateY(-150px)}.skydiving[data-v-1682085a]{right:10%}.oxygen-desc[data-v-1682085a]{right:30%;transform:translateY(-80px)}.mil-mi-8[data-v-1682085a]{left:18%;transform:translateY(-180px)}.andean-condor[data-v-1682085a]{left:37%}.bearded-vulture[data-v-1682085a]{left:15%;transform:translateY(-150px)}.sr-71[data-v-1682085a]{right:10%}.sr-71-desc[data-v-1682085a],.yak[data-v-1682085a]{left:10%}.zeppelin[data-v-1682085a]{transform:translateY(-105px)}.caproni[data-v-1682085a]{transform:translateY(-160px)}.nacreous-desc[data-v-1682085a]{transform:translateY(-150px)}.sounding-rocket-desc[data-v-1682085a]{right:15%}.fireworks[data-v-1682085a]{right:5%}.hotair-balloon[data-v-1682085a]{right:8%}}@media only screen and (max-width:1150px){.monarch-butterfly[data-v-1682085a]{transform:translateY(-50px)}.box-kite[data-v-1682085a]{transform:translateY(150px)}.focke[data-v-1682085a]{left:18%;transform:translateY(-120px)}.alpine-chough[data-v-1682085a]{transform:translateY(-50px)}.lizard[data-v-1682085a]{right:15%}.space-shuttle[data-v-1682085a]{left:10%}.p-51[data-v-1682085a]{right:20%}.blue-jet-desc[data-v-1682085a]{left:auto;right:10%}}@media only screen and (max-width:1100px){.mallard-migrate[data-v-1682085a]{left:14%}.bleriot-xi[data-v-1682085a]{right:20%;transform:translateY(-350px)}.cessna[data-v-1682085a]{right:25%;transform:translateY(-90px)}.mil-mi-8[data-v-1682085a]{left:14%}.bell-47[data-v-1682085a]{right:12%}.highest-mouse[data-v-1682085a]{transform:translateY(-100px)}.vega-5b[data-v-1682085a]{left:15%}.sr-71[data-v-1682085a]{transform:translateY(225px)}.pick-scarf[data-v-1682085a]{left:5%}.zeppelin[data-v-1682085a]{transform:translateY(-100px)}.cirrus-desc[data-v-1682085a]{transform:translateY(0)}.mount-everest-peak[data-v-1682085a]{right:37.5%}.sounding-rocket[data-v-1682085a]{left:13%}.party-balloons[data-v-1682085a]{right:calc(50% - 220px)}}@media only screen and (max-width:1000px){.focke[data-v-1682085a]{left:10%}.sandwort[data-v-1682085a]{right:10%}.bar-goose[data-v-1682085a],.flamingo[data-v-1682085a]{left:5%}.spider[data-v-1682085a]{left:10%}.an-225[data-v-1682085a]{right:15%}.thermosphere-temp[data-v-1682085a]{max-width:335px}.fireworks[data-v-1682085a]{transform:translateY(-180px)}}@media only screen and (max-width:900px){.box-kite[data-v-1682085a]{right:25%;transform:translateY(200px)}.mil-mi-8[data-v-1682085a]{left:10%}.zeppelin[data-v-1682085a]{right:10%}.space-shuttle[data-v-1682085a]{left:5%}.sounding-rocket[data-v-1682085a]{left:12%}.project-excelsior-desc[data-v-1682085a]{left:10%;transform:translateY(-170px)}}@media only screen and (max-width:800px){.line-icon[data-v-1682085a]{width:calc(var(--mobile-width)*var(--scale-factor))}.zeppelin[data-v-1682085a]{left:2%;right:auto;transform:translateY(-20px);width:100%}.zeppelin-icon[data-v-1682085a],.zeppelin[data-v-1682085a]{max-width:95%}.nasa-x-43[data-v-1682085a]{left:auto;right:10%}.bleriot-xi[data-v-1682085a]{right:15%}.party-balloons[data-v-1682085a]{right:20%;transform:translateY(-150px)}}@media only screen and (max-height:880px){.hummingbird[data-v-1682085a]{left:3%}}@media only screen and (max-height:750px){.hummingbird[data-v-1682085a]{left:-2%}}@media only screen and (max-width:700px){.line-caption[data-v-1682085a]{font-size:16px;line-height:1.18em}.line-subcaption[data-v-1682085a]{font-size:13px;line-height:1.2em;margin-top:4px}.heading .line-caption[data-v-1682085a]{font-size:26px;padding:10px 6px 8px;width:200px}.caption[data-v-1682085a]{left:calc(50% - 4px);line-height:1.3em;max-width:250px;transform:translateX(-50%);width:90%}.caption .line-caption[data-v-1682085a]{font-size:17px}.line-icon[data-v-1682085a]{margin-bottom:5px}.alpine-chough[data-v-1682085a]{right:20%}.alpine-chough[data-v-1682085a],.bald-eagle[data-v-1682085a]{left:auto;transform:translateY(-50px)}.bald-eagle[data-v-1682085a]{right:0}.white-stork[data-v-1682085a]{left:9%;right:auto;transform:translateY(-250px)}.first-hydrogen[data-v-1682085a]{transform:translateY(-150px)}.hang-gliding[data-v-1682085a]{transform:translateY(-200px)}.bleriot-xi[data-v-1682085a]{right:20%;transform:translateY(-340px)}.yak[data-v-1682085a]{transform:translateY(-30px)}.mil-mi-8[data-v-1682085a]{left:5%;transform:translateY(-180px)}.sandwort[data-v-1682085a]{right:10%;transform:translateY(-100px)}.andean-condor[data-v-1682085a]{left:16%;transform:translateY(30px)}.godwid[data-v-1682085a]{left:10%;transform:translateY(10px)}.passenger-jet[data-v-1682085a]{right:15%;transform:translateY(75px)}.an-225[data-v-1682085a]{right:10%;transform:translateY(115px)}.f-15-eagle[data-v-1682085a]{transform:translateY(150px)}.cumolonimbus-desc[data-v-1682085a]{max-width:220px;transform:translate(-50%)}.mount-everest-peak[data-v-1682085a]{left:auto;max-width:143px;right:30.5%;transform:translateY(-23px)}.mallard-migrate[data-v-1682085a]{transform:translateY(150px)}.skydiving[data-v-1682085a]{right:50%;transform:translateY(120px)}.bald-eagle[data-v-1682085a]{left:50%;transform:translateY(0)}.vega-5b[data-v-1682085a]{left:7%;transform:translateY(40px)}.focke[data-v-1682085a]{left:10%;transform:translateY(-150px)}.box-kite[data-v-1682085a]{left:auto;right:25%;transform:translateY(290px)}.altostratus-desc[data-v-1682085a]{transform:translateY(0)}.nimbostratus-desc[data-v-1682085a]{transform:translate(-50%,30px)}.flamingo[data-v-1682085a]{left:5%;transform:translateY(-25px)}.cessna[data-v-1682085a]{left:auto;right:12%;transform:translateY(-45px)}.spider[data-v-1682085a]{left:auto;right:15%;transform:translateY(-25px)}.ruppell-bird[data-v-1682085a]{right:15%;transform:translateY(-300px)}.space-shuttle[data-v-1682085a]{left:0}.hummingbird[data-v-1682085a],.pigeon[data-v-1682085a]{left:10%}.pigeon[data-v-1682085a]{transform:translateY(-450px)}.monarch-butterfly[data-v-1682085a]{left:10%;transform:translateY(-130px)}.hotair-balloon[data-v-1682085a]{transform:translateY(-85px)}.pterodactyl[data-v-1682085a]{right:10%;transform:translateY(50px)}.lizard[data-v-1682085a]{right:15%;transform:translateY(135px)}.music-desc[data-v-1682085a]{max-width:190px;transform:translate(-50%,-45px)}.cirrus-desc[data-v-1682085a]{max-width:210px;transform:translate(-50%)}.paratrooper[data-v-1682085a]{transform:translateY(-170px)}.bar-goose[data-v-1682085a]{left:5%;transform:translateY(-180px)}.bell-x-1[data-v-1682085a]{transform:translateY(0)}.nacreous-desc[data-v-1682085a]{max-width:215px;transform:translate(-50%,-110px)}.in-trophosphere[data-v-1682085a],.welcome-desc[data-v-1682085a]{max-width:240px}.welcome-desc[data-v-1682085a]{transform:translate(-50%,-40px)}.nimbostratus-desc[data-v-1682085a]{max-width:185px}.oxygen-desc[data-v-1682085a]{max-width:205px;transform:translate(-50%,-36px)}.bumblebee[data-v-1682085a]{left:auto;right:15%;transform:translateY(30px)}.sopwith-camel[data-v-1682085a]{left:5%;transform:translateY(0)}.bell-47[data-v-1682085a]{right:10%;transform:translateY(-260px)}.pick-scarf[data-v-1682085a]{max-width:200px;transform:translate(-50%,-50px)}.water-vapor[data-v-1682085a]{max-width:240px}.mountain-goat[data-v-1682085a]{right:15%;transform:translateY(120px)}.boeing-247[data-v-1682085a]{transform:translateY(-200px)}.cirrostratus-desc[data-v-1682085a]{max-width:210px;transform:translate(-50%,-100px)}.mil-v-12[data-v-1682085a]{right:5%;transform:translateY(-250px)}.welcome-strat[data-v-1682085a]{max-width:195px}.zephyr[data-v-1682085a]{left:auto;right:15%}.perlan[data-v-1682085a]{right:25%}.u-2[data-v-1682085a]{left:10%}.suit-desc[data-v-1682085a]{max-width:200px;transform:translate(-50%,-100px)}.pressure[data-v-1682085a]{max-width:250px;transform:translate(-50%,-50px)}.jet-stream-desc[data-v-1682085a]{max-width:236px}.jet-stream-worry[data-v-1682085a]{max-width:185px;transform:translate(-50%,-50px)}.concorde[data-v-1682085a]{transform:translateY(-150px)}.paper-airplane[data-v-1682085a]{transform:translateY(100px)}.freefall-desc[data-v-1682085a]{max-width:210px;transform:translate(-50%,-225px)}.felix[data-v-1682085a]{left:30%}.sounding-rocket-desc[data-v-1682085a]{transform:translate(-50%,-200px)}.space-shuttle-heat[data-v-1682085a]{left:5%}.x-15[data-v-1682085a]{left:15%}.party-balloon-desc[data-v-1682085a]{transform:translate(-50%,-110px)}.stratosphere-ozone[data-v-1682085a]{max-width:208px}.stratosphere-temperature[data-v-1682085a]{max-width:215px}.blue-jet-desc[data-v-1682085a],.to-moon[data-v-1682085a]{max-width:190px}.mesosphere-welcome[data-v-1682085a]{max-width:195px}.tsar-bomba[data-v-1682085a]{max-width:225px}.sprite-desc[data-v-1682085a]{max-width:235px}.sprite-desc2[data-v-1682085a]{max-width:205px}.sound[data-v-1682085a]{max-width:225px}.meteors-desc[data-v-1682085a]{max-width:270px}.coldest[data-v-1682085a]{max-width:180px}.aurora-desc[data-v-1682085a]{max-width:190px}.aurora-desc2[data-v-1682085a]{max-width:205px}.karman-desc[data-v-1682085a]{max-width:200px}.spitfire[data-v-1682085a]{left:15%;transform:translateY(10px)}.highest-mouse[data-v-1682085a]{left:10%;right:auto}.armstrong[data-v-1682085a]{max-width:245px}.bell-x-1 .line-subcaption[data-v-1682085a]{max-width:130px}.sky-black[data-v-1682085a]{max-width:218px}.sr-71-desc[data-v-1682085a]{max-width:220px;transform:translate(-50%,-60px)}.f-104[data-v-1682085a]{left:auto;right:10%}.paper-airplane-desc[data-v-1682085a]{max-width:236px}.castle-bravo[data-v-1682085a]{max-width:190px}.elevator-hard[data-v-1682085a]{max-width:215px}.space-shuttle-eject[data-v-1682085a]{left:5%}.mesosphere-air[data-v-1682085a]{max-width:225px}.noctilucent-desc[data-v-1682085a]{max-width:225px;transform:translate(-50%,-300px)}.thermosphere-welcome[data-v-1682085a]{max-width:230px}.thermosphere-temp[data-v-1682085a]{max-width:225px}.thermosphere-reach[data-v-1682085a]{max-width:240px}.thermosphere-leaving[data-v-1682085a]{max-width:145px}.project-excelsior-desc[data-v-1682085a]{max-width:215px;transform:translate(-50%,-200px)}.elevator-speed[data-v-1682085a]{max-width:225px}}@media only screen and (max-width:800px) and (max-height:600px){.hummingbird[data-v-1682085a]{transform:translateY(-90px)}.fireworks[data-v-1682085a]{transform:translateY(-100px)}}
 
-const COLORS = [
-  { upTo: 500, bg: "linear-gradient(180deg, #4A90D9 0%, #7EC8E3 40%, #BEE0F0 70%, #F0F8FF 100%)" },
-  { upTo: 2000, bg: "linear-gradient(180deg, #3A78C5 0%, #5DA0D8 30%, #87CEEB 60%, #D4EEFF 100%)" },
-  { upTo: 5000, bg: "linear-gradient(180deg, #2E5EA0 0%, #4A88C0 25%, #6DB8E0 55%, #A8D8F0 100%)" },
-  { upTo: 10000, bg: "linear-gradient(180deg, #1E4090 0%, #3868B0 20%, #5A9AD8 50%, #80C0E8 100%)" },
-  { upTo: 20000, bg: "linear-gradient(180deg, #0F2070 0%, #2048A0 20%, #3880C0 50%, #5098C8 100%)" },
-  { upTo: 35000, bg: "linear-gradient(180deg, #081050 0%, #102880 20%, #1A50A0 50%, #2060A0 100%)" },
-  { upTo: 50000, bg: "linear-gradient(180deg, #040828 0%, #081448 20%, #0C2868 50%, #0E3870 100%)" },
-  { upTo: 80000, bg: "linear-gradient(180deg, #020418 0%, #040828 20%, #061038 50%, #081840 100%)" },
-  { upTo: 100000, bg: "linear-gradient(180deg, #010210 0%, #020418 20%, #030820 50%, #040C28 100%)" },
-];
-
-const LINES_TOP_OFFSET_FIX = 300;
-
-const TMP_FIX = 200; 
+`;
+const markup = `﻿<div><div class="is-start" data-v-1905051a><div data-v-fcf5069e data-v-1905051a><canvas class="bg bg-placeholder" data-v-fcf5069e></canvas> </div> <div altitude="0" class="instruments" data-v-7bbdcafe data-v-1905051a><div class="altitude" data-v-7bbdcafe><div class="altitude-digit altitude-digit-disabled" data-v-7bbdcafe>
+      0
+    </div><div class="altitude-digit altitude-digit-disabled" data-v-7bbdcafe>
+      0
+    </div><div class="altitude-digit altitude-digit-disabled" data-v-7bbdcafe>
+      0
+    </div><div class="altitude-digit altitude-digit-disabled" data-v-7bbdcafe>
+      0
+    </div><div class="altitude-digit altitude-digit-disabled" data-v-7bbdcafe>
+      0
+    </div><div class="altitude-digit" data-v-7bbdcafe>
+      0
+    </div> <div class="altitude-digit" data-v-7bbdcafe>m</div></div> <div class="temperature" data-v-7bbdcafe><span class="temperature-number" data-v-7bbdcafe>0Â°C</span> <img src="https://neal.fun/space-elevator/icons/thermometer.svg" class="temperature-icon" data-v-7bbdcafe></div></div> <div data-v-4144d7dd data-v-1905051a><div class="elevator-container" data-v-4144d7dd><div class="elevator-section" data-v-4144d7dd><!----> <div data-v-4144d7dd><div class="character-wrapper" data-v-7907fb68 data-v-4144d7dd><img src="https://neal.fun/space-elevator/icons/character.svg" data-v-7907fb68> <!----> <!----></div> <img src="https://neal.fun/space-elevator/images/textures/elevator-250.webp" class="elevator-img" data-v-4144d7dd> <div class="glass" data-v-4144d7dd></div> <div class="light" data-v-4144d7dd></div></div></div></div></div> <div class="noise" data-v-1905051a></div> <a href="/" class="site-logo site-logo" data-v-4b4ecb6e data-v-1905051a><img src="https://neal.fun/general/logos/space-elevator.svg" class="site-logo-img" data-v-4b4ecb6e></a> <img src="https://neal.fun/space-elevator/icons/note.svg" class="sound sound-muted sound-hide" data-v-1905051a> <div id="scroll-wrapper" data-v-1905051a><div class="container" data-v-1905051a><div class="grid" data-v-1905051a></div> <div class="start-trigger" data-v-1905051a></div> <div class="elevator-ease-area" data-v-1905051a></div> <div class="elevator-shake-area" data-v-1905051a></div> <div class="elevator-rain-area" data-v-1905051a></div> <div class="space-trigger" data-v-1905051a></div> <div class="thermosphere-music-trigger" data-v-1905051a></div> <div class="stratosphere-music-trigger" data-v-1905051a></div> <div class="mesosphere-music-trigger" data-v-1905051a></div> <div class="show-sound-trigger" data-v-1905051a></div> <div class="end-trigger" data-v-1905051a></div> <div class="container-graphics" data-v-1905051a><div class="clouds" data-v-77983da6 data-v-1905051a><div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cumulus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker stratus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker altostratus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker altocumulus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrus4" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrus2" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrus3" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker nimbostratus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker nimbostratus2" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker nimbostratus3" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cumulonimbus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrostratus" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrostratus2" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrostratus3" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrostratus4" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrostratus5" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker cirrostratus6" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker noctilucent" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker noctilucent2" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker nacreous" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker mount-everest" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker sprite" data-v-48115f6a></div> <!----></div> <div class="cloud-wrapper" data-v-48115f6a data-v-77983da6><div class="cloud marker blue-jet" data-v-48115f6a></div> <!----></div></div> <div class="container-inner" data-v-1905051a><div class="selection-wrapper scarf" data-v-03caf5b2 data-v-1905051a><button class="option-wrapper" data-v-03caf5b2><img src="https://neal.fun/space-elevator/images/textures/scarf-red-120.webp" class="option-img" data-v-03caf5b2></button><button class="option-wrapper" data-v-03caf5b2><img src="https://neal.fun/space-elevator/images/textures/scarf-yellow-120.webp" class="option-img" data-v-03caf5b2></button><button class="option-wrapper" data-v-03caf5b2><img src="https://neal.fun/space-elevator/images/textures/scarf-blue-120.webp" class="option-img" data-v-03caf5b2></button></div> <div class="selection-wrapper suit" data-v-03caf5b2 data-v-1905051a><button class="option-wrapper" data-v-03caf5b2><img src="https://neal.fun/space-elevator/images/textures/space-suit-1-120.webp" class="option-img" data-v-03caf5b2></button><button class="option-wrapper" data-v-03caf5b2><img src="https://neal.fun/space-elevator/images/textures/space-suit-2-120.webp" class="option-img" data-v-03caf5b2></button><button class="option-wrapper" data-v-03caf5b2><img src="https://neal.fun/space-elevator/images/textures/space-suit-3-120.webp" class="option-img" data-v-03caf5b2></button></div> <div class="grass" data-v-1905051a></div> <div data-v-1682085a data-v-1905051a><div class="line fireworks" style="top:calc(99850px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/fireworks-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/fireworks-sm.webp" class="line-icon fireworks-icon" style="--width:150px;--mobile-width:150px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Fireworks
+    </div> <!----></div><div class="line mallard-migrate" style="top:calc(99085.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/mallard-migrate-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/mallard-migrate-sm.webp" class="line-icon mallard-migrate-icon" style="--width:110px;--mobile-width:110px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Mallard
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Migration altitude
+    </div></div><div class="line welcome-desc caption" style="top:calc(98900px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Welcome to the space elevator, the only elevator that goes to space.
+    </div> <!----></div><div class="line oxygen-desc caption" style="top:calc(96670px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      As you climb, the temperature will continue to drop.
+    </div> <!----></div><div class="line cirrus-desc caption" style="top:calc(92990px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Cirrus clouds are wispy clouds made out of ice crystals.
+    </div> <!----></div><div class="line cirrostratus-desc caption" style="top:calc(89950px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Cirrocumulus are patchy clouds that can blanket the sky.
+    </div> <!----></div><div class="line cumolonimbus-desc caption" style="top:calc(95910px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Cumulonimbus are tall, towering clouds that can produce lightning, tornadoes, and hail.
+    </div> <!----></div><div class="line pigeon" style="top:calc(98172px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/pigeon-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/pigeon-sm.webp" class="line-icon pigeon-icon" style="--width:90px;--mobile-width:90px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Pigeon
+    </div> <!----></div><div class="line mil-v-12" style="top:calc(97653.04px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/mil-v-12-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/mil-v-12-sm.webp" class="line-icon mil-v-12-icon" style="--width:325px;--mobile-width:350px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Mil V-12
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Largest helicopter ever built
+    </div></div><div class="line hang-gliding" style="top:calc(98100px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/hang-gliding-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/hang-gliding-sm.webp" class="line-icon hang-gliding-icon" style="--width:170px;--mobile-width:170px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Hang Gliding
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Typical altitude
+    </div></div><div class="line helios line-space" style="top:calc(70476px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      NASA Helios HP01
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Winged aircraft altitude record
+    </div></div><div class="line nimbostratus-desc caption" style="top:calc(97200px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Nimbostratus clouds are responsible for rainy days.
+    </div> <!----></div><div class="line vampire-mk-I" style="top:calc(81881px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/vampire-mk-I-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/vampire-mk-I-sm.webp" class="line-icon vampire-mk-I-icon" style="--width:210px;--mobile-width:210px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      de Havilland Vampire
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1948 altitude record
+    </div></div><div class="line bell-x-1" style="top:calc(78500px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bell-x-1-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bell-x-1-sm.webp" class="line-icon bell-x-1-icon" style="--width:280px;--mobile-width:280px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bell X-1
+    </div> <div class="line-subcaption" data-v-1682085a>
+      First aircraft to break the sound barrier
+    </div></div><div class="line vostok-1 line-space" style="top:calc(10500px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Vostok 1
+    </div> <div class="line-subcaption" data-v-1682085a>
+      On the way to space
+    </div></div><div class="line learjet-45" style="top:calc(85000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/learjet-45-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/learjet-45-sm.webp" class="line-icon learjet-45-icon" style="--width:240px;--mobile-width:240px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Learjet 45
+    </div> <!----></div><div class="line douglas-dc-3" style="top:calc(92900px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/douglas-dc-3-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/douglas-dc-3-sm.webp" class="line-icon douglas-dc-3-icon" style="--width:270px;--mobile-width:290px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Douglas DC-3
+    </div> <!----></div><div class="line bleriot-xi" style="top:calc(99000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bleriot-xi-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bleriot-xi-sm.webp" class="line-icon bleriot-xi-icon" style="--width:180px;--mobile-width:180px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      BlÃ©riot XI
+    </div> <div class="line-subcaption" data-v-1682085a>
+      First plane to cross the English Channel
+    </div></div><div class="line alpine-chough" style="top:calc(96800px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/alpine-chough-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/alpine-chough-sm.webp" class="line-icon alpine-chough-icon" style="--width:80px;--mobile-width:80px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Alpine Chough
+    </div> <!----></div><div class="line skydiving" style="top:calc(96952px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/skydiving-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/skydiving-sm.webp" class="line-icon skydiving-icon" style="--width:140px;--mobile-width:140px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Skydiver
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Typical altitude
+    </div></div><div class="line white-stork" style="top:calc(96037.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/white-stork-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/white-stork-sm.webp" class="line-icon white-stork-icon" style="--width:105px;--mobile-width:100px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      White Stork
+    </div> <!----></div><div class="line cessna" style="top:calc(95733px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/cessna-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/cessna-sm.webp" class="line-icon cessna-icon" style="--width:210px;--mobile-width:200px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Cessna 172
+    </div> <!----></div><div class="line party-balloons" style="top:calc(90970px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/party-balloons-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/party-balloons-sm.webp" class="line-icon party-balloons-icon" style="--width:85px;--mobile-width:85px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Party Balloons
+    </div> <!----></div><div class="line lizard" style="top:calc(94600px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/lizard-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/lizard-sm.webp" class="line-icon lizard-icon" style="--width:95px;--mobile-width:95px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Liolaemus Lizard
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest-dwelling reptile
+    </div></div><div class="line mil-mi-8" style="top:calc(95500px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/mil-mi-8-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/mil-mi-8-sm.webp" class="line-icon mil-mi-8-icon" style="--width:300px;--mobile-width:310px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Mil Mi-8
+    </div> <!----></div><div class="line pterodactyl" style="top:calc(95428px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/pterodactyl-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/pterodactyl-sm.webp" class="line-icon pterodactyl-icon" style="--width:160px;--mobile-width:160px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Pterodactyl
+    </div> <!----></div><div class="line bald-eagle" style="top:calc(96952px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bald-eagle-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bald-eagle-sm.webp" class="line-icon bald-eagle-icon" style="--width:115px;--mobile-width:115px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bald Eagle
+    </div> <!----></div><div class="line zeppelin" style="top:calc(95123.2px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/zeppelin-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/zeppelin-sm.webp" class="line-icon zeppelin-icon" style="--width:430px;--mobile-width:430px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Zeppelin
+    </div> <!----></div><div class="line yak" style="top:calc(94900px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/yak-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/yak-sm.webp" class="line-icon yak-icon" style="--width:115px;--mobile-width:108px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Wild Yak
+    </div> <!----></div><div class="line spider" style="top:calc(93400px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/spider-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/spider-sm.webp" class="line-icon spider-icon" style="--width:70px;--mobile-width:70px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Himalayan Jumping Spider
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest-dwelling spider
+    </div></div><div class="line vega-5b" style="top:calc(96000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/vega-5b-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/vega-5b-sm.webp" class="line-icon vega-5b-icon" style="--width:180px;--mobile-width:180px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Vega 5b
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Amelia Earhart's plane
+    </div></div><div class="line bumblebee" style="top:calc(94400px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bumblebee-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bumblebee-sm.webp" class="line-icon bumblebee-icon" style="--width:45px;--mobile-width:45px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bumblebee
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest observed flight
+    </div></div><div class="line bell-47" style="top:calc(94361.2px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bell-47-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bell-47-sm.webp" class="line-icon bell-47-icon" style="--width:195px;--mobile-width:195px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bell 47
+    </div> <div class="line-subcaption" data-v-1682085a>
+      First helicopter to fly over the Alps
+    </div></div><div class="line bell-x-2 line-space" style="top:calc(61535px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Bell X-2
+    </div> <!----></div><div class="line godwid" style="top:calc(93904px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/godwid-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/godwid-sm.webp" class="line-icon godwid-icon" style="--width:105px;--mobile-width:105px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bar-Tailed Godwit
+    </div> <!----></div><div class="line sandwort" style="top:calc(93820px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/sandwort-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/sandwort-sm.webp" class="line-icon sandwort-icon" style="--width:80px;--mobile-width:80px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Flycatcher Sandwort
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Himalayan flowering plant
+    </div></div><div class="line highest-mouse" style="top:calc(93260px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/highest-mouse-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/highest-mouse-sm.webp" class="line-icon highest-mouse-icon" style="--width:90px;--mobile-width:90px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Yellow-Rumped Leaf-Eared Mouse
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest-dwelling mammal
+    </div></div><div class="line bearded-vulture" style="top:calc(92685px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bearded-vulture-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bearded-vulture-sm.webp" class="line-icon bearded-vulture-icon" style="--width:150px;--mobile-width:150px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bearded Vulture
+    </div> <!----></div><div class="line paratrooper" style="top:calc(92380px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/paratrooper-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/paratrooper-sm.webp" class="line-icon paratrooper-icon" style="--width:150px;--mobile-width:150px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Paratrooper
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Max altitude
+    </div></div><div class="line death-zone caption center" style="top:calc(91950px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Above this altitude is known as the "death zone", because there isn't enough oxygen for human life.
+    </div> <!----></div><div class="line whooper-swan" style="top:calc(91770.4px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/whooper-swan-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/whooper-swan-sm.webp" class="line-icon whooper-swan-icon" style="--width:107px;--mobile-width:107px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Whooper Swan
+    </div> <!----></div><div class="line mount-everest-peak caption" style="top:calc(91152px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Mount Everest Peak
+    </div> <!----></div><div class="line box-kite" style="top:calc(96199px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/box-kite-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/box-kite-sm.webp" class="line-icon box-kite-icon" style="--width:88px;--mobile-width:88px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Box Kite
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest flying kite
+    </div></div><div class="line andean-condor" style="top:calc(93500px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/andean-condor-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/andean-condor-sm.webp" class="line-icon andean-condor-icon" style="--width:170px;--mobile-width:170px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Andean Condor
+    </div> <!----></div><div class="line bar-goose" style="top:calc(91161px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/bar-goose-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/bar-goose-sm.webp" class="line-icon bar-goose-icon" style="--width:103px;--mobile-width:103px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Bar-headed Goose
+    </div> <!----></div><div class="line sopwith-camel" style="top:calc(94300px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/sopwith-camel-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/sopwith-camel-sm.webp" class="line-icon sopwith-camel-icon" style="--width:190px;--mobile-width:190px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Sopwith Camel
+    </div> <div class="line-subcaption" data-v-1682085a>
+      WWI fighter plane
+    </div></div><div class="line p-80" style="top:calc(86350px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/p-80-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/p-80-sm.webp" class="line-icon p-80-icon" style="--width:215px;--mobile-width:220px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      P-80 Shooting Star
+    </div> <!----></div><div class="line p-51" style="top:calc(87200px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/p-51-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/p-51-sm.webp" class="line-icon p-51-icon" style="--width:200px;--mobile-width:200px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      P-51 Mustang
+    </div> <div class="line-subcaption" data-v-1682085a>
+      WWII fighter plane
+    </div></div><div class="line f-35" style="top:calc(85000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/f-35-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/f-35-sm.webp" class="line-icon f-35-icon" style="--width:200px;--mobile-width:225px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      F-35
+    </div> <!----></div><div class="line passenger-jet" style="top:calc(90000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/passenger-jet-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/passenger-jet-sm.webp" class="line-icon passenger-jet-icon" style="--width:320px;--mobile-width:350px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Passenger Jet
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Typical cruising altitude
+    </div></div><div class="line crane" style="top:calc(89941.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/crane-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/crane-sm.webp" class="line-icon crane-icon" style="--width:125px;--mobile-width:125px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Common Crane
+    </div> <!----></div><div class="line osprey" style="top:calc(98400px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/osprey-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/osprey-sm.webp" class="line-icon osprey-icon" style="--width:115px;--mobile-width:115px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Osprey
+    </div> <!----></div><div class="line spitfire" style="top:calc(89636.8px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/spitfire-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/spitfire-sm.webp" class="line-icon spitfire-icon" style="--width:185px;--mobile-width:185px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Spitfire
+    </div> <!----></div><div class="line an-225" style="top:calc(89249.704px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/an-225-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/an-225-sm.webp" class="line-icon an-225-icon" style="--width:300px;--mobile-width:330px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      An-225 Mriya
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Heaviest plane ever built
+    </div></div><div class="line ruppell-bird" style="top:calc(88722.4px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/ruppell-bird-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/ruppell-bird-sm.webp" class="line-icon ruppell-bird-icon" style="--width:95px;--mobile-width:95px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Ruppell's Griffon Vulture
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest flying bird
+    </div></div><div class="line sa-315" style="top:calc(87558.064px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/sa-315-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/sa-315-sm.webp" class="line-icon sa-315-icon" style="--width:250px;--mobile-width:250px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      SA 315B Lama
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest flying helicopter
+    </div></div><div class="line mountain-goat" style="top:calc(96037.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/mountain-goat-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/mountain-goat-sm.webp" class="line-icon mountain-goat-icon" style="--width:110px;--mobile-width:110px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Mountain Goat
+    </div> <!----></div><div class="line welcome-strat caption center" style="top:calc(83800px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Welcome to the stratosphere.
+    </div> <!----></div><div class="line stratosphere-temperature caption center" style="top:calc(82500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Unlike the troposphere, the temperature in the stratosphere increases the higher you go.
+    </div> <!----></div><div class="line stratosphere-ozone caption center" style="top:calc(83400px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The stratosphere is home to the ozone layer, which protects us from harmful UV rays.
+    </div> <!----></div><div class="line in-trophosphere caption" style="top:calc(98500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      You are currently in the troposphere, the lowest layer of the atmosphere.
+    </div> <!----></div><div class="line water-vapor caption" style="top:calc(98100px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The troposphere contains 99% of the water vapor in the atmosphere.
+    </div> <!----></div><div class="line stratosphere heading" style="top:calc(84500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Stratosphere
+    </div> <!----></div><div class="line music-desc caption" style="top:calc(94602px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      This elevator ride needs some music...
+    </div> <!----></div><div class="line jet-stream-desc caption center" style="top:calc(86540px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Jet streams are bands of strong winds in the atmosphere. They can reach speeds of up to 450 km/h.
+    </div> <!----></div><div class="line jet-stream-worry caption center" style="top:calc(85920px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Don't worry, the elevator is pretty strong... I think.
+    </div> <!----></div><div class="line mesosphere heading line-space" style="top:calc(50000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Mesosphere
+    </div> <!----></div><div class="line mesosphere-air caption center line-space" style="top:calc(48500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The air in the mesosphere is very thin. It has less than 1% of the pressure as the air at sea level.
+    </div> <!----></div><div class="line mesosphere-welcome caption center line-space" style="top:calc(49500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Congratulations! You have reached the mesosphere and are now halfway to space.
+    </div> <!----></div><div class="line sounding-rocket line-space" style="top:calc(42000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Sounding Rocket
+    </div> <!----></div><div class="line v-2 line-space" style="top:calc(19533px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      V-2 Rocket
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Peak altitude
+    </div></div><div class="line coldest caption center line-space" style="top:calc(16000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      This is the coldest part of Earth's atmosphere.
+    </div> <!----></div><div class="line sounding-rocket-desc caption line-space" style="top:calc(41900px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Since weather balloons can't reach this height, rockets with sensors are used to learn more about the mesosphere.
+    </div> <!----></div><div class="line thermosphere heading line-space" style="top:calc(15000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Thermosphere
+    </div> <!----></div><div class="line thermosphere-welcome caption center line-space" style="top:calc(14500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Welcome to the thermosphere, the final layer on our journey to space.
+    </div> <!----></div><div class="line karman-desc caption center line-space" style="top:calc(13800px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      At 100 km high, the KÃ¡rmÃ¡n line is usually accepted as the start of outer space.
+    </div> <!----></div><div class="line thermosphere-reach caption center line-space" style="top:calc(2000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      You are about to reach a place fewer than 1,000 humans have ever been.
+    </div> <!----></div><div class="line thermosphere-leaving caption center line-space" style="top:calc(1000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Now leaving Earth.
+    </div> <!----></div><div class="line thermosphere-temp caption center line-space" style="top:calc(13000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Temperatures in the thermosphere can reach 2,500Â°C, but molecules are so far apart that you wouldn't even feel it.
+    </div> <!----></div><div class="line highest-ejection line-space" style="top:calc(76226px);color:#fff" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/highest-ejection-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/highest-ejection-sm.webp" class="line-icon highest-ejection-icon" style="--width:60px;--mobile-width:60px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Highest Aircraft Ejection
+    </div> <!----></div><div class="line concorde" style="top:calc(82000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/concorde-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/concorde-sm.webp" class="line-icon concorde-icon" style="--width:260px;--mobile-width:275px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Concorde
+    </div> <!----></div><div class="line armstrong caption" style="top:calc(80970px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      This is the Armstrong limit - above this altitude your saliva and tears will boil if you don't have a pressure suit.
+    </div> <!----></div><div class="line nacreous-desc caption" style="top:calc(80200px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Nacreous clouds are rare clouds found in polar regions. They are made of small ice particles that scatter light in colorful ways.
+    </div> <!----></div><div class="line ussr-1" style="top:calc(81500px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/ussr-1-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/ussr-1-sm.webp" class="line-icon ussr-1-icon" style="--width:130px;--mobile-width:130px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      USSR-1
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1933 balloon altitude record
+    </div></div><div class="line hotair-balloon" style="top:calc(99085.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/hotair-balloon-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/hotair-balloon-sm.webp" class="line-icon hotair-balloon-icon" style="--width:150px;--mobile-width:160px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Hot Air Balloon
+    </div> <!----></div><div class="line zephyr" style="top:calc(77749.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/zephyr-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/zephyr-sm.webp" class="line-icon zephyr-icon" style="--width:220px;--mobile-width:220px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Airbus Zephyr
+    </div> <div class="line-subcaption" data-v-1682085a>
+      High-altitude platform station
+    </div></div><div class="line monarch-butterfly" style="top:calc(97000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/monarch-butterfly-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/monarch-butterfly-sm.webp" class="line-icon monarch-butterfly-icon" style="--width:60px;--mobile-width:60px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Monarch Butterfly
+    </div> <!----></div><div class="line pressure caption center" style="top:calc(87777.52px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      As air pressure drops, so does the temperature needed to boil water. At this altitude, water boils at just 54Â°C.
+    </div> <!----></div><div class="line sky-black caption" style="top:calc(77300px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      As the air gets thinner, there are fewer molecules to scatter light. So the sky starts getting darker.
+    </div> <!----></div><div class="line sr-71-desc caption line-space" style="top:calc(74250px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The SR-71 is one of the fastest planes ever made. It can fly at over 3 times the speed of sound.
+    </div> <!----></div><div class="line suit-desc caption center" style="top:calc(88170px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Now would be a good time to pick out your space suit.
+    </div> <!----></div><div class="line pick-scarf caption" style="top:calc(96363.736px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      It's a bit chilly, pick a scarf to stay warm.
+    </div> <!----></div><div class="line perlan" style="top:calc(77000px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/perlan-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/perlan-sm.webp" class="line-icon perlan-icon" style="--width:250px;--mobile-width:250px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Perlan II
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest altitude glider
+    </div></div><div class="line sud-ouest line-space" style="top:calc(73700px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Sud-Ouest Trident II
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1958 rocket plane altitude record
+    </div></div><div class="line f-104 line-space" style="top:calc(72187px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      F-104 Starfighter
+    </div> <!----></div><div class="line space-shuttle-heat line-space" style="top:calc(29000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Space Shuttle Re-entry
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Maximum heat
+    </div></div><div class="line tsar-bomba caption center line-space" style="top:calc(35627px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The mushroom cloud from the largest ever nuclear test, the Tsar Bomba, reached this altitude.
+    </div> <!----></div><div class="line weather-balloon line-space" style="top:calc(68500px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Weather Balloon
+    </div> <!----></div><div class="line nasa-x-43 line-space" style="top:calc(69700px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      NASA X-43
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Experimental hypersonic aircraft
+    </div></div><div class="line pompeii caption center line-space" style="top:calc(67000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The ash cloud from the eruption that destroyed Pompeii reached this height.
+    </div> <!----></div><div class="line party-balloon-desc caption" style="top:calc(90800px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      If you've ever wondered where your lost balloons went, at this height a typical party balloon will pop.
+    </div> <!----></div><div class="line paper-airplane line-space" style="top:calc(65000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Highest paper airplane flight
+    </div> <!----></div><div class="line paper-airplane-desc caption line-space" style="top:calc(65000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Launched from a balloon, this is the highest a paper airplane has flown.
+    </div> <!----></div><div class="line felix line-space" style="top:calc(63700px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Felix Freefall
+    </div> <!----></div><div class="line freefall-desc caption line-space" style="top:calc(63700px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Felix Baumgartner was the first person to break the sound barrier in freefall. He reached a top speed of 1,356 km/h.
+    </div> <!----></div><div class="line to-moon caption center line-space" style="top:calc(62000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Congratulations! You have made it 0.01% to the moon.
+    </div> <!----></div><div class="line space-shuttle" style="top:calc(88874.8px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/space-shuttle-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/space-shuttle-sm.webp" class="line-icon space-shuttle-icon" style="--width:225px;--mobile-width:250px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Space Shuttle
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Reaches max aerodynamic pressure
+    </div></div><div class="line castle-bravo caption center line-space" style="top:calc(60400px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The mushroom cloud from the Castle Bravo nuclear test reached this altitude.
+    </div> <!----></div><div class="line russia-meteor line-space" style="top:calc(55000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Chelyabinsk Meteor
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Airburst altitude
+    </div></div><div class="line elevator-feasible caption center line-space" style="top:calc(57500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Space elevators are actually a possible idea being considered by scientists.
+    </div> <!----></div><div class="line elevator-cheaper caption center line-space" style="top:calc(56800px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      They could potentially offer a cheaper and safer way of getting to space.
+    </div> <!----></div><div class="line elevator-hard caption center line-space" style="top:calc(56100px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The hard part is making a strong enough cable. And finding enough elevator music...
+    </div> <!----></div><div class="line sutter line-space" style="top:calc(52000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Sutter's Mill Meteor
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Breakup altitude
+    </div></div><div class="line sprite-desc caption line-space" style="top:calc(30500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Sprites are a rare form of lightning spotted over thunderstorms that only last a fraction of a second.
+    </div> <!----></div><div class="line sprite-desc2 caption line-space" style="top:calc(30000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      While normal lightning is around 4 km long, sprites can reach lengths of up to 50 km.
+    </div> <!----></div><div class="line sound caption center line-space" style="top:calc(27000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Since the speed of sound depends on the temperature, sound travels 15% slower up here.
+    </div> <!----></div><div class="line elevator-speed caption center line-space" style="top:calc(44000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      The world's fastest elevator travels at 74 km/h. A space elevator with the same speed would take 80 minutes to reach space.
+    </div> <!----></div><div class="line blue-jet-desc caption line-space" style="top:calc(51000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Blue jets are a rare form of lightning that arc upward in a brilliant blue flash.
+    </div> <!----></div><div class="line u-2 line-space" style="top:calc(75600px);color:#fff" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/u-2-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/u-2-sm.webp" class="line-icon u-2-icon" style="--width:300px;--mobile-width:300px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      U-2
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Spy plane
+    </div></div><div class="line noctilucent-desc caption center line-space" style="top:calc(24270px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Noctilucent clouds are the highest altitude clouds in the atmosphere. They are only visible at night and at higher latitudes.
+    </div> <!----></div><div class="line meteors-desc caption center line-space" style="top:calc(20500px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Most meteors burn up in the mesosphere. It's estimated that over 48 tons of meteors hit the atmosphere every day.
+    </div> <!----></div><div class="line sr-71 line-space" style="top:calc(74092px);color:#fff" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/sr-71-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/sr-71-sm.webp" class="line-icon sr-71-icon" style="--width:350px;--mobile-width:350px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      SR-71 Blackbird
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1976 altitude record
+    </div></div><div class="line caproni" style="top:calc(82917px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/caproni-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/caproni-sm.webp" class="line-icon caproni-icon" style="--width:220px;--mobile-width:220px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Caproni Ca.161
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1938 altitude record
+    </div></div><div class="line project-excelsior line-space" style="top:calc(68911px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Project Excelsior
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1960 skydive altitude record
+    </div></div><div class="line project-excelsior-desc caption line-space" style="top:calc(69000px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      With nothing but a duct-taped pressure suit, Joseph Kittinger jumped from an open gondola and set a record that would last more than 50 years.
+    </div> <!----></div><div class="line su-9" style="top:calc(83240px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/su-9-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/su-9-sm.webp" class="line-icon su-9-icon" style="--width:265px;--mobile-width:265px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Sukhoi Su-9
+    </div> <!----></div><div class="line explorer-2" style="top:calc(77934px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/explorer-2-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/explorer-2-sm.webp" class="line-icon explorer-2-icon" style="--width:120px;--mobile-width:120px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Explorer II
+    </div> <div class="line-subcaption" data-v-1682085a>
+      1935 balloon altitude record
+    </div></div><div class="line douglas line-space" style="top:calc(75000px);color:#fff" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/douglas-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/douglas-sm.webp" class="line-icon douglas-icon" style="--width:310px;--mobile-width:310px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Douglas Skyrocket
+    </div> <div class="line-subcaption" data-v-1682085a>
+      First aircraft to reach Mach 2
+    </div></div><div class="line saturn-v line-space" style="top:calc(38845px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Saturn V
+    </div> <div class="line-subcaption" data-v-1682085a>
+      First stage separation
+    </div></div><div class="line bu60 line-space" style="top:calc(47000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      BU60-1
+    </div> <div class="line-subcaption" data-v-1682085a>
+      High altitude balloon record
+    </div></div><div class="line aurora-desc caption center line-space" style="top:calc(9800px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      As particles from the sun hit the atmosphere, they excite the atoms in the air.
+    </div> <!----></div><div class="line aurora-desc2 caption center line-space" style="top:calc(9100px);color:#1c1c1c" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      These excited atoms start to glow, creating brilliant displays of light called auroras.
+    </div> <!----></div><div class="line x-15 line-space" style="top:calc(5000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      X-15
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Highest flying rocket plane
+    </div></div><div class="line karman-line heading line-space" style="top:calc(0px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      KÃ¡rmÃ¡n line
+    </div> <!----></div><div class="line hummingbird" style="top:calc(99847.6px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/hummingbird-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/hummingbird-sm.webp" class="line-icon hummingbird-icon" style="--width:70px;--mobile-width:70px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Hummingbird
+    </div> <!----></div><div class="line flamingo" style="top:calc(95600px);color:#1c1c1c" data-v-1682085a><picture data-v-1682085a><source srcset="https://neal.fun/space-elevator/images/sprites/flamingo-lg.webp" media="(min-width:500px)" data-v-1682085a> <img srcset="https://neal.fun/space-elevator/images/sprites/flamingo-sm.webp" class="line-icon flamingo-icon" style="--width:150px;--mobile-width:150px" data-v-1682085a></picture> <div class="line-caption" data-v-1682085a>
+      Chilean Flamingo
+    </div> <!----></div><div class="line alan line-space" style="top:calc(58581.0328px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Alan Eustace's Skydive
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Current record for highest skydive
+    </div></div><div class="line space-shuttle-eject line-space" style="top:calc(54280px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Space Shuttle
+    </div> <div class="line-subcaption" data-v-1682085a>
+      Boosters eject
+    </div></div><div class="line vss-unity line-space" style="top:calc(11000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      VSS Unity
+    </div> <!----></div><div class="line falcon-9 line-space" style="top:calc(18000px);color:#fff" data-v-1682085a><!----> <div class="line-caption" data-v-1682085a>
+      Falcon 9
+    </div> <div class="line-subcaption" data-v-1682085a>
+      First stage separation
+    </div></div></div> <button class="play-music" data-v-1905051a><img src="https://neal.fun/space-elevator/icons/note.svg" class="play-music-icon" data-v-1905051a>
+            Play Elevator Music
+          </button> <div class="title" data-v-1905051a><img src="https://neal.fun/space-elevator/icons/title.svg" class="title-img" data-v-1905051a> <div class="scroll-up" data-v-1905051a><img src="https://neal.fun/space-elevator/icons/chevron.svg" class="scroll-up-icon" data-v-1905051a> <span class="scroll-up-text" data-v-1905051a>Scroll Up!</span> <img src="https://neal.fun/space-elevator/icons/chevron.svg" class="scroll-up-icon" data-v-1905051a></div></div> <div class="end-screen" data-v-1905051a><div class="end-screen-inner" data-v-1905051a><img src="https://neal.fun/space-elevator/icons/title-end.svg" class="end-title" data-v-1905051a> <div class="end-credits" data-v-1905051a><div class="end-credit" data-v-1905051a>Created by Neal Agarwal</div> <div class="end-credit-2" data-v-1905051a>Birds & planes by Cindy Nhi</div></div> <a target="_blank" href="https://neal.fun/support/" class="bmc" data-v-1905051a><img src="https://neal.fun/space-elevator/icons/coffee.svg" class="bmc-icon" data-v-1905051a>Buy Me a Coffee</a> <a href="/" class="end-browse" data-v-1905051a>Browse more projects on Neal.fun</a></div></div></div></div></div></div>
+`;
 
 export default function SpaceElevator() {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [scroll, setScroll] = useState(0);
-  const [totalHeight, setTotalHeight] = useState(100000);
-  const [charState, setCharState] = useState<"normal" | "scarf" | "suit">("normal");
 
   useEffect(() => {
-    const el = wrapperRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const st = el.scrollTop;
-      const sh = el.scrollHeight;
-      const ch = el.clientHeight;
-      setScroll(ch > 0 ? st / (sh - ch) : 0);
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const scrollEl = wrapper.querySelector('#scroll-wrapper') as HTMLElement;
+    if (!scrollEl) return;
+
+    const container = scrollEl.querySelector('.container') as HTMLElement;
+    const canvas = wrapper.querySelector('.bg-placeholder') as HTMLElement;
+    const elevatorSection = wrapper.querySelector('.elevator-section') as HTMLElement;
+    const altitudeEl = wrapper.querySelector('.altitude') as HTMLElement;
+    const soundEl = wrapper.querySelector('.sound') as HTMLElement;
+    const playMusicBtn = wrapper.querySelector('.play-music') as HTMLElement;
+    const scarfOptions = wrapper.querySelectorAll('.selection-wrapper.scarf .option-wrapper');
+    const suitOptions = wrapper.querySelectorAll('.selection-wrapper.suit .option-wrapper');
+    const charWrapper = wrapper.querySelector('.character-wrapper') as HTMLElement;
+    const tempNumber = wrapper.querySelector('.temperature-number') as HTMLElement;
+    const allCloudAnimated = wrapper.querySelectorAll('.cloud-animated');
+
+    let isMuted = true;
+    let currentScarf = '';
+    let currentSuit = '';
+
+    const bgOverlay = document.createElement('div');
+    bgOverlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:0;transition:opacity .3s';
+    if (canvas && canvas.parentNode) {
+      canvas.parentNode.insertBefore(bgOverlay, canvas.nextSibling);
+    }
+
+    const updateScroll = () => {
+      const st = scrollEl.scrollTop;
+      const sh = scrollEl.scrollHeight;
+      const wh = scrollEl.clientHeight;
+      const maxS = Math.max(sh - wh, 1);
+      const sp = Math.min(Math.max(st / maxS, 0), 1);
+
+      const alt = Math.round(sp * 100000);
+      const digits = alt.toString().padStart(6, '0');
+
+      const digitEls = altitudeEl ? altitudeEl.querySelectorAll('.altitude-digit:not(:last-child)') : [];
+      digitEls.forEach((el, i) => { el.textContent = digits[i]; });
+      const disabledEls = altitudeEl ? altitudeEl.querySelectorAll('.altitude-digit-disabled') : [];
+      disabledEls.forEach((el, i) => { el.textContent = digits[i]; });
+
+      if (altitudeEl) altitudeEl.classList.toggle('show-altitude', alt > 0);
+
+      const isStart = sp < 0.001;
+      const isSpace = alt >= 100000;
+      if (container) {
+        container.classList.toggle('is-start', isStart);
+        container.classList.toggle('is-space', isSpace);
+        container.classList.toggle('is-end', isSpace);
+      }
+
+      bgOverlay.style.backgroundColor = 'rgba(0,0,0,' + Math.min(sp * 1.5, 1) * 0.7 + ')';
+
+      if (elevatorSection) {
+        const bottomPx = Math.min(st / (sh - wh), 1) * (wh + 200);
+        elevatorSection.style.bottom = bottomPx + 'px';
+      }
+
+      const temp = Math.round(15 - sp * 115);
+      if (tempNumber) tempNumber.textContent = sp < 0.01 ? '0°C' : temp + '°C';
+
+      const showSound = alt >= 6000;
+      if (soundEl) soundEl.classList.toggle('sound-hide', !showSound);
+
+      allCloudAnimated.forEach(function(c) { c.classList.toggle('play-anim', alt > 50); });
+
+      // Update line marker visibility based on scroll
+      const allLines = wrapper.querySelectorAll('.line[data-v-1682085a]') as NodeListOf<HTMLElement>;
+      const viewportCenter = st + wh / 2;
+      allLines.forEach(function(line) {
+        const topStr = line.style.top;
+        if (!topStr) return;
+        const topPx = parseFloat(topStr.replace('calc(', '').replace('px)', ''));
+        if (isNaN(topPx)) return;
+        const dist = Math.abs(viewportCenter - topPx);
+        const visible = dist < wh * 0.8;
+        line.style.opacity = visible ? '' : '0';
+        line.style.pointerEvents = visible ? '' : 'none';
+      });
     };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => el.removeEventListener("scroll", onScroll);
+
+    scarfOptions.forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        const target = e.currentTarget as HTMLElement;
+        if (!target) return;
+        const img = target.querySelector('img');
+        if (!img) return;
+        const src = img.getAttribute('src') || '';
+        const name = (src.split('/').pop() || '').replace('.svg', '');
+        if (currentScarf === name) {
+          currentScarf = '';
+          const s = charWrapper ? charWrapper.querySelector('.scarf') : null;
+          if (s) s.remove();
+          return;
+        }
+        currentScarf = name;
+        const s2 = charWrapper ? charWrapper.querySelector('.scarf') : null;
+        if (s2) s2.remove();
+        const el = document.createElement('img');
+        el.className = 'scarf';
+        el.src = BASE + '/space-elevator/icons/scarves/' + name + '.svg';
+        if (charWrapper) charWrapper.appendChild(el);
+      });
+    });
+
+    suitOptions.forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        const target = e.currentTarget as HTMLElement;
+        if (!target) return;
+        const img = target.querySelector('img');
+        if (!img) return;
+        const src = img.getAttribute('src') || '';
+        const name = (src.split('/').pop() || '').replace('.svg', '');
+        if (currentSuit === name) {
+          currentSuit = '';
+          const s = charWrapper ? charWrapper.querySelector('.suit') : null;
+          if (s) s.remove();
+          if (charWrapper) charWrapper.classList.remove('has-suit');
+          return;
+        }
+        currentSuit = name;
+        const s2 = charWrapper ? charWrapper.querySelector('.suit') : null;
+        if (s2) s2.remove();
+        const el = document.createElement('img');
+        el.className = 'suit';
+        if (name === 'suit-2') el.classList.add('space-suit-2');
+        el.src = BASE + '/space-elevator/icons/suits/' + name + '.svg';
+        if (charWrapper) {
+          charWrapper.appendChild(el);
+          charWrapper.classList.add('has-suit');
+        }
+      });
+    });
+
+    if (soundEl) {
+      soundEl.addEventListener('click', function() {
+        isMuted = !isMuted;
+        soundEl.classList.toggle('sound-muted', isMuted);
+      });
+    }
+
+    if (playMusicBtn) {
+      playMusicBtn.addEventListener('click', function() {
+        const icon = playMusicBtn.querySelector('.play-music-icon');
+        if (icon) icon.classList.toggle('play-music-icon-anim');
+      });
+    }
+
+    let rafId = requestAnimationFrame(function tick() {
+      updateScroll();
+      rafId = requestAnimationFrame(tick);
+    });
+
+    updateScroll();
+    if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+
+    return function() {
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
-  const visibleTop = scroll;
-  const show = (topPx: number) => {
-    const normalized = 1 - topPx / totalHeight;
-    return scroll > normalized - 0.005 && scroll < normalized + 0.03;
-  };
-
-  const getBg = useCallback(() => {
-    const pct = scroll * 100;
-    for (const c of COLORS) {
-      if (pct <= ((c.upTo / 100000) * 100)) return c.bg;
-    }
-    return COLORS[COLORS.length - 1].bg;
-  }, [scroll]);
-
-  const isSpace = scroll > 0.96;
-  const scrollPx = scroll * totalHeight;
-  const displayAlt = Math.round(scrollPx);
-
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden">
-      <div
-        className="absolute inset-0 z-[1] transition-opacity duration-1000 pointer-events-none"
-        style={{
-          background: isSpace
-            ? "radial-gradient(ellipse at 50% 20%, rgba(20,40,100,0.4) 0%, transparent 70%)"
-            : "radial-gradient(ellipse at 50% 0%, rgba(255,200,100,0.08) 0%, transparent 60%)",
-        }}
-      />
-      {isSpace && (
-        <div
-          className="absolute inset-0 z-[1] pointer-events-none"
-          style={{
-            backgroundImage: `
-              radial-gradient(1px 1px at 10% 15%, white, transparent),
-              radial-gradient(1px 1px at 25% 35%, white, transparent),
-              radial-gradient(1.5px 1.5px at 40% 8%, white, transparent),
-              radial-gradient(1px 1px at 55% 55%, white, transparent),
-              radial-gradient(1.5px 1.5px at 70% 20%, white, transparent),
-              radial-gradient(1px 1px at 85% 50%, white, transparent),
-              radial-gradient(1px 1px at 15% 65%, white, transparent),
-              radial-gradient(1.5px 1.5px at 35% 80%, white, transparent),
-              radial-gradient(1px 1px at 60% 40%, white, transparent),
-              radial-gradient(1px 1px at 80% 70%, white, transparent),
-              radial-gradient(1.5px 1.5px at 90% 10%, white, transparent),
-              radial-gradient(1px 1px at 5% 45%, white, transparent),
-              radial-gradient(1px 1px at 45% 30%, white, transparent),
-              radial-gradient(1.5px 1.5px at 75% 85%, white, transparent),
-              radial-gradient(1px 1px at 95% 35%, white, transparent),
-              radial-gradient(1px 1px at 20% 2%, white, transparent),
-              radial-gradient(1.5px 1.5px at 50% 12%, white, transparent),
-              radial-gradient(1px 1px at 65% 60%, white, transparent),
-              radial-gradient(1px 1px at 30% 50%, white, transparent),
-              radial-gradient(1.5px 1.5px at 88% 25%, white, transparent),
-            `,
-          }}
-        />
-      )}
-      <div
-        ref={wrapperRef}
-        className="relative z-[2] w-full h-full overflow-y-auto overscroll-none"
-        style={{
-          background: getBg(),
-          transition: "background 0.3s ease-out",
-        }}
-      >
-        <div
-          className="relative"
-          style={{ height: `${totalHeight + TMP_FIX}px` }}
-        >
-          <Link
-            href="/"
-            className={`fixed top-3 left-3 z-50 flex items-center gap-1 text-xs sm:text-sm transition-colors ${
-              isSpace ? "text-white/70 hover:text-white" : "text-white/60 hover:text-white/90"
-            }`}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="rotate-180">
-              <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Back
-          </Link>
-
-          <div
-            className="fixed left-2 sm:left-4 z-40 pointer-events-none transition-all duration-300"
-            style={{
-              top: `${8 + (1 - scroll) * 60}%`,
-            }}
-          >
-            <div className="flex flex-col items-center">
-              <div className="h-12 w-0.5 bg-white/15 mb-0.5" />
-              <div className="relative w-7 sm:w-9">
-                <div
-                  className={`w-7 sm:w-9 h-9 sm:h-11 rounded-lg flex items-center justify-center text-lg ${
-                    isSpace ? "bg-white/5 border border-white/10" : "bg-white/10 backdrop-blur-sm border border-white/15"
-                  }`}
-                >
-                  {charState === "suit" ? "🧑‍🚀" : charState === "scarf" ? "🧣" : "🧑"}
-                </div>
-                {charState === "scarf" && (
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 text-xs">🧣</div>
-                )}
-              </div>
-              <div className="h-20 w-0.5 bg-white/10 mt-0.5" />
-            </div>
-          </div>
-
-          <div className="fixed bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-50">
-            <div
-              className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 transition-all duration-500"
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                {String(displayAlt).padStart(6, "0").slice(0, 6).split("").map((d, i) => (
-                  <span
-                    key={i}
-                    className="font-mono text-white font-bold text-base sm:text-lg tabular-nums"
-                  >
-                    {d}
-                  </span>
-                ))}
-                <span className="text-white/50 text-[10px] sm:text-xs font-mono">m</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1">
-            <div className="h-32 sm:h-48 w-0.5 bg-white/5 rounded-full relative">
-              <div
-                className="absolute bottom-0 w-full bg-white/30 rounded-full transition-all duration-200"
-                style={{ height: `${scroll * 100}%` }}
-              />
-            </div>
-            <span
-              className={`text-[9px] sm:text-[10px] font-mono transition-colors ${
-                isSpace ? "text-white/40" : "text-white/30"
-              }`}
-            >
-              {displayAlt >= 1000 ? `${(displayAlt / 1000).toFixed(1)}k` : `${displayAlt}`}
-            </span>
-          </div>
-
-          {LINES.map((line) => {
-            const pos = (line.top + LINES_TOP_OFFSET_FIX) / (totalHeight + TMP_FIX);
-            const visible =
-              scroll >= pos - 0.02 && scroll <= pos + 0.03;
-            if (!visible) return null;
-
-            const xPos =
-              line.side === "left"
-                ? "5%"
-                : line.side === "right"
-                  ? "65%"
-                  : "50%";
-            const transform = line.side === "center" ? "translateX(-50%)" : "none";
-
-            if (line.heading) {
-              return (
-                <div
-                  key={line.top}
-                  className="absolute z-20 pointer-events-none"
-                  style={{
-                    top: `${(1 - pos) * 100}%`,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                  }}
-                >
-                  <div
-                    className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl border text-center whitespace-nowrap ${
-                      isSpace
-                        ? "bg-black/20 backdrop-blur-md border-white/10"
-                        : "bg-white/90 backdrop-blur-sm border-black/10"
-                    }`}
-                  >
-                    <div
-                      className={`text-xs sm:text-sm font-bold tracking-wider uppercase ${
-                        isSpace ? "text-white" : "text-black"
-                      }`}
-                    >
-                      {line.icon} {line.label}
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={line.top}
-                className="absolute z-20 pointer-events-none"
-                style={{
-                  top: `${(1 - pos) * 100}%`,
-                  left: xPos,
-                  transform,
-                }}
-              >
-                <div
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full max-w-[180px] sm:max-w-[240px] ${
-                    isSpace
-                      ? "bg-black/20 backdrop-blur-sm border border-white/10"
-                      : "bg-white/80 backdrop-blur-sm border border-black/5 shadow-sm"
-                  }`}
-                >
-                  <span className="text-xs sm:text-sm shrink-0">{line.icon}</span>
-                  <span
-                    className={`text-[10px] sm:text-xs font-medium truncate ${
-                      isSpace ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {line.label}
-                  </span>
-                  <span
-                    className={`text-[8px] sm:text-[10px] truncate ${
-                      isSpace ? "text-white/50" : "text-black/40"
-                    }`}
-                  >
-                    {line.caption}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-
-          {scroll < 0.01 && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none">
-              <div style={{ animation: "fade-up 0.6s ease-out" }} className="text-center px-4">
-                <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">🛸</div>
-                <h1 className="font-display font-bold text-2xl sm:text-3xl text-white mb-2">
-                  Space Elevator
-                </h1>
-                <p className="text-white/60 text-xs sm:text-sm max-w-xs">
-                  Scroll down to ride from sea level to the edge of space
-                </p>
-                <div className="mt-4 animate-bounce text-white/40 text-lg">↓</div>
-              </div>
-            </div>
-          )}
-
-          {scroll > 0.95 && scroll < 0.97 && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none">
-              <div style={{ animation: "fade-up 0.6s ease-out" }} className="text-center">
-                <div className="text-5xl mb-3">🌍</div>
-                <h2 className="font-display font-bold text-xl sm:text-2xl text-white mb-1">
-                  You reached space!
-                </h2>
-                <p className="text-white/60 text-xs sm:text-sm">Kármán line — 100 km above sea level</p>
-              </div>
-            </div>
-          )}
-
-          {scroll > 0.99 && (
-            <div className="absolute inset-0 z-30 flex flex-col items-center justify-center pointer-events-none">
-              <div style={{ animation: "fade-up 0.6s ease-out" }} className="text-center px-4">
-                <div className="text-5xl mb-3">🌌</div>
-                <h2 className="font-display font-bold text-xl sm:text-2xl text-white mb-1">
-                  Journey Complete
-                </h2>
-                <p className="text-white/60 text-xs sm:text-sm max-w-xs mx-auto">
-                  You traveled through Earth&apos;s atmosphere to the edge of space.
-                </p>
-                <button
-                  onClick={() => wrapperRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
-                  className="mt-3 pointer-events-auto text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg border border-white/20 transition-all cursor-pointer"
-                >
-                  Return to Earth ↓
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="fixed bottom-12 sm:bottom-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2">
-            {charState === "normal" && (
-              <button
-                onClick={() => setCharState("scarf")}
-                className="text-[10px] sm:text-xs bg-white/10 hover:bg-white/20 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 transition-all backdrop-blur-sm cursor-pointer"
-              >
-                Scarf 🧣
-              </button>
-            )}
-            {charState === "scarf" && (
-              <button
-                onClick={() => setCharState("suit")}
-                className="text-[10px] sm:text-xs bg-white/10 hover:bg-white/20 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 transition-all backdrop-blur-sm cursor-pointer"
-              >
-                Spacesuit 🧑‍🚀
-              </button>
-            )}
-            {charState !== "normal" && (
-              <button
-                onClick={() => setCharState("normal")}
-                className="text-[10px] sm:text-xs bg-white/5 hover:bg-white/15 text-white/70 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/10 transition-all backdrop-blur-sm cursor-pointer"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-
-          <div className="fixed right-2 sm:right-4 bottom-2 sm:bottom-3 z-50">
-            <span
-              className={`text-[10px] sm:text-xs font-mono transition-colors ${
-                isSpace ? "text-white/40" : "text-white/30"
-              }`}
-            >
-              {scroll < 0.5
-                ? `${Math.round(-displayAlt * 0.006)}°C`
-                : scroll < 0.7
-                  ? `${Math.round(-displayAlt * 0.008 - 20)}°C`
-                  : scroll < 0.9
-                    ? `${Math.round(-displayAlt * 0.004 - 80)}°C`
-                    : scroll < 0.96
-                      ? `${Math.round(displayAlt * 0.008 - 200)}°C`
-                      : "1,500°C"}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div
-        className="absolute inset-0 z-[3] pointer-events-none"
-        style={{
-          backgroundImage: `url(https://neal.fun/space-elevator/images/textures/noise.jpeg)`,
-          backgroundSize: "400px 400px",
-          mixBlendMode: "overlay",
-          opacity: 0.12,
-        }}
-      />
+    <div ref={wrapperRef} data-v-1905051a style={{ position: 'fixed', inset: 0, width: '100%', height: '100%' }}>
+      <style>{styles}</style>
+      <div dangerouslySetInnerHTML={{ __html: markup }} />
     </div>
   );
 }
