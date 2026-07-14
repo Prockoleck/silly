@@ -54,7 +54,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "2 nanometers",
     fact: "Your DNA, if unraveled and laid end-to-end, would stretch from Earth to the Sun and back 600 times.",
     category: "MOLECULAR",
-    image: "https://upload.wikimedia.org/wikipedia/commons/3/3b/DNA_double_helix_horizontal.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/97/DNA_Double_Helix.png",
   },
   {
     label: "Virus",
@@ -62,7 +62,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "100 nanometers",
     fact: "Viruses are so small that 500 million of them could dance on a pinhead. They blur the line between life and chemistry.",
     category: "MICROSCOPIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/1/1b/SARS-CoV-2_without_background.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/82/SARS-CoV-2_without_background.png",
   },
   {
     label: "Bacteria",
@@ -94,7 +94,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "2 centimeters",
     fact: "The first coins were minted around 600 BC in Lydia. Before that, people traded grain, cattle, and seashells.",
     category: "HUMAN_SCALE",
-    image: "https://upload.wikimedia.org/wikipedia/commons/6/6f/United_States_penny%2C_obverse%2C_2002.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/b/b8/2005-Penny-Uncirculated-Obverse-cropped.png",
   },
   {
     label: "Human",
@@ -134,7 +134,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "12,742 kilometers",
     fact: "Earth is the densest planet in the solar system and the only known world with liquid water on its surface.",
     category: "PLANETARY",
-    image: "https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17_with_transparent_background.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/4/43/The_Earth_seen_from_Apollo_17_with_transparent_background.png",
   },
   {
     label: "Saturn's Rings",
@@ -142,7 +142,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "280,000 kilometers",
     fact: "Saturn's rings span 280,000 km but are only about 10 meters thick — thinner than a sheet of paper scaled up.",
     category: "PLANETARY",
-    image: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Saturnx.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Saturn_transparent.png",
   },
   {
     label: "The Sun",
@@ -150,7 +150,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "1.39 million km",
     fact: "Over 1.3 million Earths could fit inside the Sun. It converts 600 million tons of hydrogen into helium every second.",
     category: "STELLAR",
-    image: "https://upload.wikimedia.org/wikipedia/commons/8/80/Transparent_Sun.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/81/Transparent_Sun.png",
   },
   {
     label: "Solar System",
@@ -174,7 +174,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "100,000 light-years",
     fact: "Crossing the Milky Way at light speed would take 100,000 years. It contains 100 to 400 billion stars.",
     category: "GALACTIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/1/18/Milky_Way_Galaxy_%28transparent_background%29.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/Milky_Way_Galaxy_%28transparent_background%29.png",
   },
   {
     label: "Local Group",
@@ -182,7 +182,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "10 million light-years",
     fact: "Our Local Group contains 80+ galaxies. Andromeda is hurtling toward us at 110 km/s — collision in 4.5 billion years.",
     category: "GALACTIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/3/32/06-Local_Group_%28LofE06256%29.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/80/06-Local_Group_%28LofE06256%29.png",
   },
   {
     label: "Virgo Supercluster",
@@ -198,7 +198,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "93 billion light-years",
     fact: "The observable universe contains 2 trillion galaxies. Beyond it lies either more universe or the edge of reality itself.",
     category: "COSMIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Ilc_9yr_moll4096.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Observable_universe_logarithmic_illustration.png",
   },
 ];
 
