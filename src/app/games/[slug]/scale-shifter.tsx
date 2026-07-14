@@ -173,7 +173,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "100,000 light-years",
     fact: "Crossing the Milky Way at light speed would take 100,000 years. It contains 100 to 400 billion stars.",
     category: "GALACTIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/Milky_Way_Galaxy_%28transparent_background%29.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/01/Milky_way.png",
   },
   {
     label: "Local Group",
@@ -181,7 +181,7 @@ const LEVELS: ScaleLevel[] = [
     sizeLabel: "10 million light-years",
     fact: "Our Local Group contains 80+ galaxies. Andromeda is hurtling toward us at 110 km/s — collision in 4.5 billion years.",
     category: "GALACTIC",
-    image: "https://upload.wikimedia.org/wikipedia/commons/8/80/06-Local_Group_%28LofE06256%29.png",
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/57/5_Local_Galactic_Group_%28ELitU%29.png",
   },
   {
     label: "Virgo Supercluster",
