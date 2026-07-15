@@ -34,5 +34,11 @@ export const games: Game[] = [
     description: "Pick your favorites. Get a personality profile.",
     image: "/games/ranker.jpg",
   },
-
+  {
+    slug: "sandboxels",
+    title: "Sandboxels",
+    description: "Play with elements — sand, water, fire, acid, lava, and more.",
+    image: "/games/size-of-life.svg",
+    isNew: true,
+  },
 ];

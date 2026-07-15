@@ -22,6 +22,7 @@ const gameComponents: Record<string, () => Promise<{ default: React.ComponentTyp
   "old-web-explorer": () => import("./old-web-explorer"),
   "scale-shifter": () => import("./scale-shifter"),
   "ranker": () => import("./ranker"),
+  "sandboxels": () => import("./sandboxels"),
 };
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
