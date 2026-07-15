@@ -10,7 +10,7 @@ export default function GameCard({ game }: { game: Game }) {
       <img
         src={game.image}
         alt={game.title}
-        className="w-full aspect-[43/24] block max-w-full border-[3px] border-black"
+        className="w-full aspect-[43/24] block max-w-full border-[3px] border-black rounded-[15px]"
         loading="lazy"
       />
     </Link>
