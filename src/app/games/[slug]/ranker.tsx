@@ -202,6 +202,8 @@ export default function Ranker() {
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    const from = touchStartIndex.current;
+    if (from === null) return;
     const touch = e.touches[0];
     if (!touch) return;
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -209,10 +211,10 @@ export default function Ranker() {
     const itemEl = (el as HTMLElement).closest('[data-rank-idx]') as HTMLElement | null;
     if (!itemEl) return;
     const idx = Number(itemEl.getAttribute('data-rank-idx'));
-    if (!isNaN(idx) && dragIndex !== null && dragIndex !== idx) {
+    if (!isNaN(idx) && idx !== from) {
       setOverIndex(idx);
     }
-  }, [dragIndex]);
+  }, []);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     const from = touchStartIndex.current;
@@ -379,9 +381,9 @@ export default function Ranker() {
                       ? "bg-green-50 border-green-300"
                       : "bg-red-50 border-red-200"
                     : dragIndex === i
-                      ? "shadow-2xl bg-white border-accent/70 scale-[1.08] -rotate-[1.5deg] z-50 opacity-90"
+                      ? "shadow-2xl bg-white border-accent/70 scale-105 -translate-y-2 z-50 ring-4 ring-accent/30"
                       : overIndex === i
-                        ? "border-accent/70 bg-accent-light/40 ring-2 ring-accent/40 -translate-y-1"
+                        ? "border-accent/70 bg-accent-light/40 ring-2 ring-accent/40 translate-y-1"
                         : "bg-white border-border hover:border-accent/30 hover:bg-accent-light/10"
                 } ${!sortSubmitted ? "cursor-grab active:cursor-grabbing" : ""}`}
               >
