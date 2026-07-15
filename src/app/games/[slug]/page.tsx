@@ -14,6 +14,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: game.title,
     description: game.description,
+    openGraph: {
+      title: game.title,
+      description: game.description,
+      images: [{ url: game.image, width: 1920, height: 1080 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [game.image],
+    },
   };
 }
 

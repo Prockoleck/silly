@@ -38,7 +38,7 @@ export const games: Game[] = [
     slug: "sandboxels",
     title: "Sandboxels",
     description: "Play with elements — sand, water, fire, acid, lava, and more.",
-    image: "/games/size-of-life.svg",
+    image: "/sandboxels-thumb.jpeg",
     isNew: true,
   },
 ];
