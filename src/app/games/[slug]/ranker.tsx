@@ -373,15 +373,15 @@ export default function Ranker() {
                 onDrop={(e) => handleDrop(e, i)}
                 onDragEnd={handleDragEnd}
                 onTouchStart={(e) => !sortSubmitted && handleTouchStart(e, i)}
-                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none touch-none ${
+                className={`relative flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none touch-none ${
                   sortSubmitted
                     ? item.name === correctOrder[i].name
                       ? "bg-green-50 border-green-300"
                       : "bg-red-50 border-red-200"
                     : dragIndex === i
-                      ? "shadow-lg border-accent/60 bg-accent-light/20 scale-[1.03] -translate-y-0.5 rotate-[-1deg] z-10"
+                      ? "shadow-2xl bg-white border-accent/70 scale-[1.08] -rotate-[1.5deg] z-50 opacity-90"
                       : overIndex === i
-                        ? "border-accent/60 bg-accent-light/40 scale-[1.02] ring-2 ring-accent/30"
+                        ? "border-accent/70 bg-accent-light/40 ring-2 ring-accent/40 -translate-y-1"
                         : "bg-white border-border hover:border-accent/30 hover:bg-accent-light/10"
                 } ${!sortSubmitted ? "cursor-grab active:cursor-grabbing" : ""}`}
               >
