@@ -25,7 +25,7 @@ export const games: Game[] = [
     slug: "scale-shifter",
     title: "Scale",
     description: "Scroll through the universe from the quantum foam to the cosmic web.",
-    image: "/games/scale-shifter.svg",
+    image: "/games/scale-shifter.jpg",
     isNew: true,
   },
   {
