@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { Reorder } from "framer-motion";
 import Link from "next/link";
 
 type RankerItem = {
@@ -153,85 +154,6 @@ export default function Ranker() {
     return [...category.items].sort((a, b) => b.value - a.value);
   }, [category]);
 
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
-
-  const moveItem = useCallback((from: number, to: number) => {
-    if (from === to) return;
-    setSortOrder((prev) => {
-      const arr = [...prev];
-      const [moved] = arr.splice(from, 1);
-      arr.splice(to, 0, moved);
-      return arr;
-    });
-  }, []);
-
-  const handleDragStart = useCallback((i: number) => {
-    setDragIndex(i);
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent, i: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    if (dragIndex !== null && dragIndex !== i) setOverIndex(i);
-  }, [dragIndex]);
-
-  const handleDragLeave = useCallback(() => {
-    setOverIndex(null);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent, targetIdx: number) => {
-    e.preventDefault();
-    setOverIndex(null);
-    if (dragIndex === null || dragIndex === targetIdx) return;
-    moveItem(dragIndex, targetIdx);
-    setDragIndex(null);
-  }, [dragIndex, moveItem]);
-
-  const handleDragEnd = useCallback(() => {
-    setDragIndex(null);
-    setOverIndex(null);
-  }, []);
-
-  const touchStartIndex = useRef<number | null>(null);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent, i: number) => {
-    touchStartIndex.current = i;
-    setDragIndex(i);
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    const from = touchStartIndex.current;
-    if (from === null) return;
-    const touch = e.touches[0];
-    if (!touch) return;
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!el) return;
-    const itemEl = (el as HTMLElement).closest('[data-rank-idx]') as HTMLElement | null;
-    if (!itemEl) return;
-    const idx = Number(itemEl.getAttribute('data-rank-idx'));
-    if (!isNaN(idx) && idx !== from) {
-      setOverIndex(idx);
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    const from = touchStartIndex.current;
-    touchStartIndex.current = null;
-    if (from === null) return;
-    const touch = e.changedTouches[0];
-    if (!touch) { setDragIndex(null); setOverIndex(null); return; }
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!el) { setDragIndex(null); setOverIndex(null); return; }
-    const itemEl = (el as HTMLElement).closest('[data-rank-idx]') as HTMLElement | null;
-    if (!itemEl) { setDragIndex(null); setOverIndex(null); return; }
-    const to = Number(itemEl.getAttribute('data-rank-idx'));
-    if (!isNaN(to)) moveItem(from, to);
-    setDragIndex(null);
-    setOverIndex(null);
-  }, [moveItem]);
-
   const submitSort = useCallback(() => {
     if (!category) return;
     let correct = 0;
@@ -363,44 +285,45 @@ export default function Ranker() {
             Drag to reorder from <strong>highest {category.metricShort}</strong> (top) to <strong>lowest</strong> (bottom)
           </p>
 
-          <div className="space-y-1.5 mb-5" onTouchMove={!sortSubmitted ? handleTouchMove : undefined} onTouchEnd={!sortSubmitted ? handleTouchEnd : undefined}>
-            {sortOrder.map((item, i) => (
-              <div
-                key={item.name}
-                data-rank-idx={i}
-                draggable={!sortSubmitted}
-                onDragStart={() => handleDragStart(i)}
-                onDragOver={(e) => handleDragOver(e, i)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, i)}
-                onDragEnd={handleDragEnd}
-                onTouchStart={(e) => !sortSubmitted && handleTouchStart(e, i)}
-                className={`relative flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none touch-none ${
-                  sortSubmitted
-                    ? item.name === correctOrder[i].name
+          {sortSubmitted ? (
+            <div className="space-y-1.5 mb-5">
+              {sortOrder.map((item, i) => (
+                <div
+                  key={item.name}
+                  className={`flex items-center gap-2 p-3 rounded-xl border-2 select-none ${
+                    item.name === correctOrder[i].name
                       ? "bg-green-50 border-green-300"
                       : "bg-red-50 border-red-200"
-                    : dragIndex === i
-                      ? "shadow-2xl bg-white border-accent/70 scale-105 -translate-y-2 z-50 ring-4 ring-accent/30"
-                      : overIndex === i
-                        ? "border-accent/70 bg-accent-light/40 ring-2 ring-accent/40 translate-y-1"
-                        : "bg-white border-border hover:border-accent/30 hover:bg-accent-light/10"
-                } ${!sortSubmitted ? "cursor-grab active:cursor-grabbing" : ""}`}
-              >
-                {!sortSubmitted && (
-                  <span className="text-sm text-ink-muted select-none shrink-0" title="Drag to reorder">☰</span>
-                )}
-                <span className={`text-sm font-mono font-bold w-5 text-center shrink-0 ${sortSubmitted ? item.name === correctOrder[i].name ? "text-green-600" : "text-red-400" : "text-ink-muted"}`}>
-                  {i + 1}
-                </span>
-                <span className="text-lg shrink-0">{item.emoji}</span>
-                <span className="flex-1 text-sm font-medium text-ink truncate">{item.name}</span>
-                {sortSubmitted && (
+                  }`}
+                >
+                  <span className="text-sm font-mono font-bold w-5 text-center shrink-0">{i + 1}</span>
+                  <span className="text-lg shrink-0">{item.emoji}</span>
+                  <span className="flex-1 text-sm font-medium text-ink truncate">{item.name}</span>
                   <span className="text-xs text-ink-secondary shrink-0">{item.valueLabel}</span>
-                )}
-              </div>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Reorder.Group axis="y" values={sortOrder} onReorder={setSortOrder} className="space-y-1.5 mb-5">
+              {sortOrder.map((item, i) => (
+                <Reorder.Item
+                  key={item.name}
+                  value={item}
+                  whileDrag={{
+                    scale: 1.05,
+                    zIndex: 50,
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+                  }}
+                  className="flex items-center gap-2 p-3 rounded-xl border-2 border-border bg-white cursor-grab active:cursor-grabbing select-none hover:border-accent/30 hover:bg-accent-light/10"
+                >
+                  <span className="text-sm text-ink-muted select-none shrink-0" title="Drag to reorder">☰</span>
+                  <span className="text-sm font-mono font-bold w-5 text-center shrink-0 text-ink-muted">{i + 1}</span>
+                  <span className="text-lg shrink-0">{item.emoji}</span>
+                  <span className="flex-1 text-sm font-medium text-ink truncate">{item.name}</span>
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          )}
 
           {!sortSubmitted && (
             <button
