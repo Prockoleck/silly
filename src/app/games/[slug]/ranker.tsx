@@ -379,9 +379,9 @@ export default function Ranker() {
                       ? "bg-green-50 border-green-300"
                       : "bg-red-50 border-red-200"
                     : dragIndex === i
-                      ? "opacity-40 border-accent/40 bg-accent-light/20"
+                      ? "shadow-lg border-accent/60 bg-accent-light/20 scale-[1.03] -translate-y-0.5 rotate-[-1deg] z-10"
                       : overIndex === i
-                        ? "border-accent/50 bg-accent-light/30 scale-[1.01]"
+                        ? "border-accent/60 bg-accent-light/40 scale-[1.02] ring-2 ring-accent/30"
                         : "bg-white border-border hover:border-accent/30 hover:bg-accent-light/10"
                 } ${!sortSubmitted ? "cursor-grab active:cursor-grabbing" : ""}`}
               >
