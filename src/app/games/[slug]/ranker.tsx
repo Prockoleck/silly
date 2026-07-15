@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 
 type RankerItem = {
@@ -156,6 +156,16 @@ export default function Ranker() {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
+  const moveItem = useCallback((from: number, to: number) => {
+    if (from === to) return;
+    setSortOrder((prev) => {
+      const arr = [...prev];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return arr;
+    });
+  }, []);
+
   const handleDragStart = useCallback((i: number) => {
     setDragIndex(i);
   }, []);
@@ -174,19 +184,51 @@ export default function Ranker() {
     e.preventDefault();
     setOverIndex(null);
     if (dragIndex === null || dragIndex === targetIdx) return;
-    setSortOrder((prev) => {
-      const arr = [...prev];
-      const [moved] = arr.splice(dragIndex, 1);
-      arr.splice(targetIdx, 0, moved);
-      return arr;
-    });
+    moveItem(dragIndex, targetIdx);
     setDragIndex(null);
-  }, [dragIndex]);
+  }, [dragIndex, moveItem]);
 
   const handleDragEnd = useCallback(() => {
     setDragIndex(null);
     setOverIndex(null);
   }, []);
+
+  const touchStartIndex = useRef<number | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, i: number) => {
+    touchStartIndex.current = i;
+    setDragIndex(i);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) return;
+    const itemEl = (el as HTMLElement).closest('[data-rank-idx]') as HTMLElement | null;
+    if (!itemEl) return;
+    const idx = Number(itemEl.getAttribute('data-rank-idx'));
+    if (!isNaN(idx) && dragIndex !== null && dragIndex !== idx) {
+      setOverIndex(idx);
+    }
+  }, [dragIndex]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const from = touchStartIndex.current;
+    touchStartIndex.current = null;
+    if (from === null) return;
+    const touch = e.changedTouches[0];
+    if (!touch) { setDragIndex(null); setOverIndex(null); return; }
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) { setDragIndex(null); setOverIndex(null); return; }
+    const itemEl = (el as HTMLElement).closest('[data-rank-idx]') as HTMLElement | null;
+    if (!itemEl) { setDragIndex(null); setOverIndex(null); return; }
+    const to = Number(itemEl.getAttribute('data-rank-idx'));
+    if (!isNaN(to)) moveItem(from, to);
+    setDragIndex(null);
+    setOverIndex(null);
+  }, [moveItem]);
 
   const submitSort = useCallback(() => {
     if (!category) return;
@@ -319,17 +361,19 @@ export default function Ranker() {
             Drag to reorder from <strong>highest {category.metricShort}</strong> (top) to <strong>lowest</strong> (bottom)
           </p>
 
-          <div className="space-y-1.5 mb-5">
+          <div className="space-y-1.5 mb-5" onTouchMove={!sortSubmitted ? handleTouchMove : undefined} onTouchEnd={!sortSubmitted ? handleTouchEnd : undefined}>
             {sortOrder.map((item, i) => (
               <div
                 key={item.name}
+                data-rank-idx={i}
                 draggable={!sortSubmitted}
                 onDragStart={() => handleDragStart(i)}
                 onDragOver={(e) => handleDragOver(e, i)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, i)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none ${
+                onTouchStart={(e) => !sortSubmitted && handleTouchStart(e, i)}
+                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all select-none touch-none ${
                   sortSubmitted
                     ? item.name === correctOrder[i].name
                       ? "bg-green-50 border-green-300"

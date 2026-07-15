@@ -34,10 +34,5 @@ export const games: Game[] = [
     description: "Pick your favorites. Get a personality profile.",
     image: "/games/ranker.svg",
   },
-  {
-    slug: "space-elevator",
-    title: "Space Elevator",
-    description: "Scroll from the ground all the way to space.",
-    image: "/games/space-elevator.svg",
-  },
+
 ];
