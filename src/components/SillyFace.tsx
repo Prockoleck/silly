@@ -161,14 +161,26 @@ export default function SillyFace() {
     animate(performance.now());
   }, [animate]);
 
+  const w = 40;
+  const h = 75;
+  const svgSize = w;
+  const svgTop = h - svgSize;
+  const scale = svgSize / 50;
+  const eyeW = 12;
+  const eyeH = 12;
+  const leftEyeCx = 15 * scale;
+  const leftEyeCy = svgTop + 14 * scale;
+  const rightEyeCx = 35 * scale;
+  const rightEyeCy = svgTop + 14 * scale;
+
   return (
     <div
       ref={wrapperRef}
       onClick={startBounce}
       className={`relative shrink-0 ${dizzy ? "dizzy" : ""}`}
       style={{
-        width: 30,
-        height: 56,
+        width: w,
+        height: h,
         cursor: "pointer",
         userSelect: "none",
         WebkitUserSelect: "none",
@@ -220,61 +232,71 @@ export default function SillyFace() {
         />
       </svg>
 
-      {/* Eyes overlay */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* Eyes overlay — positioned in wrapper pixels matching SVG rendering */}
+      <div
+        className="absolute bg-white rounded-full"
+        style={{
+          width: eyeW,
+          height: eyeH,
+          left: leftEyeCx - eyeW / 2,
+          top: leftEyeCy - eyeH / 2,
+          pointerEvents: "none",
+        }}
+      >
         <div
-          className="absolute bg-white rounded-full"
-          style={{ width: "30%", height: "28%", left: "15%", top: "14%" }}
-        >
-          <div
-            ref={leftPupilRef}
-            className="pupil"
-            style={{
-              position: "absolute",
-              background: "#2D2A24",
-              borderRadius: "50%",
-              width: "50%",
-              height: "50%",
-              left: "25%",
-              top: "25%",
-              transition: "transform 75ms ease-out",
-              ...(dizzy
-                ? {
-                    animation: `dizzy-spin 0.65s linear infinite`,
-                    animationDirection: dizzyDirRef.current === 1 ? "normal" : "reverse",
-                    transition: "none",
-                  }
-                : {}),
-            }}
-          />
-        </div>
+          ref={leftPupilRef}
+          className="pupil"
+          style={{
+            position: "absolute",
+            background: "#2D2A24",
+            borderRadius: "50%",
+            width: "50%",
+            height: "50%",
+            left: "25%",
+            top: "25%",
+            transition: "transform 75ms ease-out",
+            ...(dizzy
+              ? {
+                  animation: `dizzy-spin 0.65s linear infinite`,
+                  animationDirection: dizzyDirRef.current === 1 ? "normal" : "reverse",
+                  transition: "none",
+                }
+              : {}),
+          }}
+        />
+      </div>
 
+      <div
+        className="absolute bg-white rounded-full"
+        style={{
+          width: eyeW,
+          height: eyeH,
+          left: rightEyeCx - eyeW / 2,
+          top: rightEyeCy - eyeH / 2,
+          pointerEvents: "none",
+        }}
+      >
         <div
-          className="absolute bg-white rounded-full"
-          style={{ width: "30%", height: "28%", left: "55%", top: "14%" }}
-        >
-          <div
-            ref={rightPupilRef}
-            className="pupil"
-            style={{
-              position: "absolute",
-              background: "#2D2A24",
-              borderRadius: "50%",
-              width: "50%",
-              height: "50%",
-              left: "25%",
-              top: "25%",
-              transition: "transform 75ms ease-out",
-              ...(dizzy
-                ? {
-                    animation: `dizzy-spin 0.65s linear infinite`,
-                    animationDirection: dizzyDirRef.current === 1 ? "normal" : "reverse",
-                    transition: "none",
-                  }
-                : {}),
-            }}
-          />
-        </div>
+          ref={rightPupilRef}
+          className="pupil"
+          style={{
+            position: "absolute",
+            background: "#2D2A24",
+            borderRadius: "50%",
+            width: "50%",
+            height: "50%",
+            left: "25%",
+            top: "25%",
+            transition: "transform 75ms ease-out",
+            ...(dizzy
+              ? {
+                  animation: `dizzy-spin 0.65s linear infinite`,
+                  animationDirection: dizzyDirRef.current === 1 ? "normal" : "reverse",
+                  transition: "none",
+                }
+              : {}),
+          }}
+        />
       </div>
     </div>
   );
