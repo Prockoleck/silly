@@ -178,96 +178,65 @@ export default function SillyFace() {
       }}
     >
       <svg
-        viewBox="0 0 42 50"
+        viewBox="0 0 50 50"
         style={{
           position: "absolute",
           bottom: 0,
           width: "100%",
           display: "block",
-          strokeLinejoin: "round",
-          strokeMiterlimit: 2,
+          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
         }}
       >
-        <g transform="matrix(1,0,0,1,-3490.31,-1501.28)">
-          <g transform="matrix(1,0,0,1.02073,3090.26,17.8656)">
-            <g>
-              {/* Body — bean shape from Neal.fun */}
-              <g transform="matrix(1,0,0,0.979688,394,1449.09)">
-                <path
-                  d="M45.378,35.48C49.508,22.594 44.372,9.428 33.906,6.074C23.44,2.72 11.608,10.447 7.478,23.333C3.348,36.219 8.484,49.384 18.95,52.738C29.416,56.093 41.249,48.366 45.378,35.48Z"
-                  fill="#7BC67E"
-                  stroke="#2D2A24"
-                  strokeWidth="1.5"
-                />
-              </g>
-              {/* Belly */}
-              <g transform="matrix(1,0,0,0.979688,394,1449.09)">
-                <ellipse cx="27" cy="37" rx="9" ry="7" fill="#A8E6A3" opacity="0.5" />
-              </g>
-              {/* Rosy cheeks */}
-              <g transform="matrix(1,0,0,0.979688,394,1449.09)">
-                <ellipse cx="5" cy="33" rx="4" ry="2.5" fill="#FF9AA2" opacity="0.5" />
-                <ellipse cx="49" cy="33" rx="4" ry="2.5" fill="#FF9AA2" opacity="0.5" />
-              </g>
-              {/* Spots */}
-              <g transform="matrix(1,0,0,0.979688,394,1449.09)">
-                <circle cx="19" cy="42" r="1.2" fill="#5DAF60" opacity="0.5" />
-                <circle cx="32" cy="44" r="1.5" fill="#5DAF60" opacity="0.5" />
-                <circle cx="24" cy="47" r="0.8" fill="#5DAF60" opacity="0.4" />
-              </g>
-              {/* Nostrils */}
-              <g transform="matrix(1,0,0,0.979688,394,1449.09)">
-                <circle cx="22" cy="25" r="1.2" fill="#4A8B4D" />
-                <circle cx="29" cy="25" r="1.2" fill="#4A8B4D" />
-              </g>
-              {/* Wide smile */}
-              <g transform="matrix(1,0,0,0.979688,394,1449.09)">
-                <path
-                  d="M 8 35 Q 27 46 46 35"
-                  fill="none"
-                  stroke="#2D2A24"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </g>
-            </g>
-          </g>
-        </g>
+        {/* Body — wide frog shape */}
+        <ellipse cx="25" cy="28" rx="22" ry="18" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
+
+        {/* Belly — lighter */}
+        <ellipse cx="25" cy="32" rx="14" ry="11" fill="#A8E6A3" opacity="0.6" />
+
+        {/* Eye bumps */}
+        <ellipse cx="15" cy="14" rx="7" ry="6" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
+        <ellipse cx="35" cy="14" rx="7" ry="6" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
+
+        {/* Rosy cheeks */}
+        <ellipse cx="8" cy="30" rx="4" ry="2.5" fill="#FF9AA2" opacity="0.5" />
+        <ellipse cx="42" cy="30" rx="4" ry="2.5" fill="#FF9AA2" opacity="0.5" />
+
+        {/* Spots */}
+        <circle cx="18" cy="36" r="1.5" fill="#5DAF60" opacity="0.5" />
+        <circle cx="30" cy="38" r="2" fill="#5DAF60" opacity="0.5" />
+        <circle cx="22" cy="40" r="1" fill="#5DAF60" opacity="0.4" />
+
+        {/* Nostrils */}
+        <circle cx="22" cy="24" r="1.2" fill="#4A8B4D" />
+        <circle cx="28" cy="24" r="1.2" fill="#4A8B4D" />
+
+        {/* Wide goofy smile */}
+        <path
+          d="M 12 32 Q 25 42 38 32"
+          fill="none"
+          stroke="#2D2A24"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
       </svg>
 
       {/* Eyes overlay */}
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
-          zIndex: 10,
-        }}
-      >
+      <div className="absolute inset-0 pointer-events-none">
         <div
-          style={{
-            position: "absolute",
-            background: "#fff",
-            borderRadius: "50%",
-            width: 8,
-            height: 8,
-            top: 3,
-            left: -16,
-          }}
+          className="absolute bg-white rounded-full"
+          style={{ width: "30%", height: "28%", left: "15%", top: "14%" }}
         >
           <div
             ref={leftPupilRef}
+            className="pupil"
             style={{
               position: "absolute",
-              background: "#333",
+              background: "#2D2A24",
               borderRadius: "50%",
-              height: 4,
-              width: 4,
-              left: "calc(50% - 2px)",
-              top: "calc(50% - 2px)",
-              transform: "translate(-50%, -50%)",
+              width: "50%",
+              height: "50%",
+              left: "25%",
+              top: "25%",
               transition: "transform 75ms ease-out",
               ...(dizzy
                 ? {
@@ -279,28 +248,22 @@ export default function SillyFace() {
             }}
           />
         </div>
+
         <div
-          style={{
-            position: "absolute",
-            background: "#fff",
-            borderRadius: "50%",
-            width: 8,
-            height: 8,
-            top: 3,
-            right: -10,
-          }}
+          className="absolute bg-white rounded-full"
+          style={{ width: "30%", height: "28%", left: "55%", top: "14%" }}
         >
           <div
             ref={rightPupilRef}
+            className="pupil"
             style={{
               position: "absolute",
-              background: "#333",
+              background: "#2D2A24",
               borderRadius: "50%",
-              height: 4,
-              width: 4,
-              left: "calc(50% - 2px)",
-              top: "calc(50% - 2px)",
-              transform: "translate(-50%, -50%)",
+              width: "50%",
+              height: "50%",
+              left: "25%",
+              top: "25%",
               transition: "transform 75ms ease-out",
               ...(dizzy
                 ? {
