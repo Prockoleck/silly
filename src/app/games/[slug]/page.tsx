@@ -35,6 +35,7 @@ const gameComponents: Record<string, () => Promise<{ default: React.ComponentTyp
   "life-checklist": () => import("./life-checklist"),
   "baby-map": () => import("./baby-map"),
   "progress": () => import("./progress"),
+  "password-game": () => import("./password-game"),
 };
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -49,7 +50,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const GameModule = await loadGame();
   const GameContent = GameModule.default;
 
-  const wideGames = new Set(["baby-map", "progress"]);
+  const wideGames = new Set(["baby-map", "progress", "password-game"]);
 
   return (
     <GameFrame title={game.title} wide={wideGames.has(slug)}>

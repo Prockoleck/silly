@@ -62,4 +62,11 @@ export const games: Game[] = [
     image: "/games/progress.jpg",
     isNew: true,
   },
+  {
+    slug: "password-game",
+    title: "Password Game",
+    description: "Create a password that satisfies an increasingly absurd set of rules.",
+    image: "/games/password-game.jpg",
+    isNew: true,
+  },
 ];
