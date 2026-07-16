@@ -71,6 +71,12 @@ body {
   75% { transform: rotate(1deg); }
 }
 
+@keyframes dizzy-tilt {
+  0%, 100% { rotate: 0deg; }
+  25% { rotate: 6deg; }
+  75% { rotate: -6deg; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

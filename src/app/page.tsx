@@ -1,12 +1,14 @@
 import GameCard from "@/components/GameCard";
+import SillyFace from "@/components/SillyFace";
 import { games } from "@/data/games";
 
 export default function Home() {
   return (
     <div className="max-w-[1430px] mx-auto px-[25px] py-12 sm:py-16">
       <header className="mb-10 text-center" style={{ animation: "bounce-in 0.6s ease-out" }}>
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-ink font-display">
-          Silly
+        <h1 className="inline-flex items-center gap-3 sm:gap-4 text-5xl sm:text-6xl font-bold tracking-tight text-ink font-display">
+          <SillyFace />
+          <span>Silly</span>
         </h1>
         <p className="text-base sm:text-lg text-ink-secondary mt-2 max-w-lg mx-auto leading-relaxed">
           A playful collection of interactive experiments and mini-games.
