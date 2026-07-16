@@ -6,12 +6,9 @@ export default function Home() {
   return (
     <div className="max-w-[1430px] mx-auto px-[25px] py-12 sm:py-16">
       <header className="mb-10 text-center" style={{ animation: "bounce-in 0.6s ease-out" }}>
-        <h1 className="inline-flex items-center justify-center text-5xl sm:text-6xl font-bold tracking-tight text-ink font-display">
-          <span>Sill</span>
-          <span className="inline-flex items-center mx-1 sm:mx-1.5">
-            <SillyFace />
-          </span>
-          <span>y</span>
+        <h1 className="inline-flex items-center justify-center gap-2 sm:gap-3 text-5xl sm:text-6xl font-bold tracking-tight text-ink font-display">
+          <span>Silly</span>
+          <SillyFace />
         </h1>
         <p className="text-base sm:text-lg text-ink-secondary mt-2 max-w-lg mx-auto leading-relaxed">
           A playful collection of interactive experiments and mini-games.
