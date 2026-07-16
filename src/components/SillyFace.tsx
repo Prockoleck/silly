@@ -147,7 +147,7 @@ export default function SillyFace() {
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
-          style={{ width: "16%", height: "20%", left: "15%", top: "12%" }}
+          style={{ width: "16%", height: "20%", left: "22%", top: "18%" }}
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
@@ -161,7 +161,7 @@ export default function SillyFace() {
 
         <div
           className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
-          style={{ width: "16%", height: "20%", left: "35%", top: "12%" }}
+          style={{ width: "16%", height: "20%", left: "62%", top: "18%" }}
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
