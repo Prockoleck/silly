@@ -244,17 +244,20 @@ export default function SandboxelsGame() {
       />
 
       {/* Category bar */}
-      <div className="flex flex-wrap justify-center gap-1 max-w-[900px]">
+      <div className="flex flex-wrap justify-center gap-1.5 max-w-[900px]">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${
               selectedCategory === cat.id
-                ? "text-white ring-1 ring-white"
-                : "text-[#aaa] hover:text-white"
+                ? "text-white ring-1 ring-white shadow-sm"
+                : "hover:text-white"
             }`}
-            style={{ backgroundColor: selectedCategory === cat.id ? cat.color : "#333" }}
+            style={{
+              backgroundColor: selectedCategory === cat.id ? cat.color : cat.color + "22",
+              color: selectedCategory === cat.id ? "#fff" : cat.color,
+            }}
           >
             {cat.name}
           </button>
@@ -262,18 +265,18 @@ export default function SandboxelsGame() {
       </div>
 
       {/* Element bar */}
-      <div className="flex flex-wrap justify-center gap-1 max-w-[900px] max-h-[120px] overflow-y-auto scrollbar-thin">
+      <div className="flex flex-wrap justify-center gap-1 max-w-[900px] max-h-[120px] overflow-y-auto scrollbar-thin border-t border-white/5 pt-2">
         {categoryElements.map(([key, el]) => (
           <button
             key={key}
             onClick={() => setSelectedElement(key)}
-            className={`px-2 py-1 text-xs font-medium rounded-md transition-all active:scale-95 ${
+            className={`px-2 py-0.5 text-[11px] font-medium rounded transition-all active:scale-95 ${
               selectedElement === key
-                ? "ring-2 ring-white text-white"
-                : "text-[#aaa] hover:text-white"
+                ? "ring-1 ring-white text-white"
+                : "text-[#999] hover:text-white"
             }`}
             style={{
-              backgroundColor: selectedElement === key ? (Array.isArray(el.color) ? el.color[0] : el.color) : "#333",
+              backgroundColor: selectedElement === key ? (Array.isArray(el.color) ? el.color[0] : el.color) : "#2a2a2a",
             }}
             title={el.desc || el.name || key}
           >
