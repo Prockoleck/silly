@@ -54,7 +54,7 @@ export default function SillyFace() {
             setDizzy(false);
             angleRef.current = 0;
             prevAngleRef.current = null;
-          }, 2000);
+          }, 3000);
         }
       }
     };
@@ -133,21 +133,13 @@ export default function SillyFace() {
           strokeLinecap="round"
         />
 
-        {/* Dizzy stars */}
-        {dizzy && (
-          <>
-            <text x="6" y="10" fontSize="6" fill="#FFB347" fontWeight="bold">★</text>
-            <text x="40" y="10" fontSize="6" fill="#FFB347" fontWeight="bold">★</text>
-            <text x="23" y="6" fontSize="4" fill="#FFB347">✦</text>
-          </>
-        )}
       </svg>
 
       {/* Interactive eyes overlay */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute bg-white rounded-full"
-          style={{ width: "16%", height: "20%", left: "22%", top: "18%" }}
+          style={{ width: "30%", height: "28%", left: "15%", top: "14%" }}
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
@@ -161,7 +153,7 @@ export default function SillyFace() {
 
         <div
           className="absolute bg-white rounded-full"
-          style={{ width: "16%", height: "20%", left: "62%", top: "18%" }}
+          style={{ width: "30%", height: "28%", left: "55%", top: "14%" }}
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
