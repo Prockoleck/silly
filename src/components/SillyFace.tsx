@@ -5,7 +5,13 @@ import { useRef, useEffect, useState, useCallback } from "react";
 export default function SillyFace() {
   const faceRef = useRef<HTMLDivElement>(null);
   const [dizzy, setDizzy] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
+  const [dizzyDir, setDizzyDir] = useState(1);
+  const [bouncing, setBouncing] = useState(false);
+
+  // Track accumulated rotation for dizzy detection
+  const angleRef = useRef(0);
+  const prevAngleRef = useRef<number | null>(null);
+  const dizzyTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     const face = faceRef.current;
@@ -17,6 +23,8 @@ export default function SillyFace() {
       const rect = face.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
+
+      // Eye tracking
       const dx = (e.clientX - cx) / (rect.width / 2);
       const dy = (e.clientY - cy) / (rect.height / 2);
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -26,38 +34,72 @@ export default function SillyFace() {
       pupils.forEach((p) => {
         p.style.transform = `translate(${px}px, ${py}px)`;
       });
+
+      // Rotation tracking for dizzy
+      if (!dizzy) {
+        const angle = Math.atan2(e.clientY - cy, e.clientX - cx);
+        if (prevAngleRef.current !== null) {
+          let delta = angle - prevAngleRef.current;
+          if (delta > Math.PI) delta -= Math.PI * 2;
+          if (delta < -Math.PI) delta += Math.PI * 2;
+          angleRef.current += delta;
+        }
+        prevAngleRef.current = angle;
+
+        if (Math.abs(angleRef.current) >= Math.PI * 6) {
+          setDizzyDir(angleRef.current > 0 ? 1 : -1);
+          setDizzy(true);
+          if (dizzyTimeoutRef.current) clearTimeout(dizzyTimeoutRef.current);
+          dizzyTimeoutRef.current = setTimeout(() => {
+            setDizzy(false);
+            angleRef.current = 0;
+            prevAngleRef.current = null;
+          }, 2000);
+        }
+      }
+    };
+
+    const onLeave = () => {
+      prevAngleRef.current = null;
+      angleRef.current = 0;
     };
 
     window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, []);
+    face.addEventListener("mouseleave", onLeave);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      face.removeEventListener("mouseleave", onLeave);
+      if (dizzyTimeoutRef.current) clearTimeout(dizzyTimeoutRef.current);
+    };
+  }, [dizzy]);
 
   const handleClick = useCallback(() => {
-    setClickCount((c) => {
-      const next = c + 1;
-      if (next >= 5) {
-        setDizzy(true);
-        setTimeout(() => {
-          setDizzy(false);
-          setClickCount(0);
-        }, 2000);
-        return 0;
-      }
-      return next;
-    });
+    setBouncing(true);
+    if (dizzyTimeoutRef.current) clearTimeout(dizzyTimeoutRef.current);
+    setDizzy(false);
+    angleRef.current = 0;
+    prevAngleRef.current = null;
+  }, []);
+
+  const onBounceEnd = useCallback(() => {
+    setBouncing(false);
   }, []);
 
   return (
     <div
       ref={faceRef}
       onClick={handleClick}
-      className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 select-none ${dizzy ? "scale-110" : ""}`}
-      style={dizzy ? { animation: "dizzy-tilt 0.75s ease-in-out infinite", transformOrigin: "bottom center" } : undefined}
+      onAnimationEnd={onBounceEnd}
+      className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 select-none ${bouncing ? "bounce-ball" : ""} ${dizzy ? "scale-110" : ""}`}
+      style={{
+        ...(dizzy ? { animation: "dizzy-tilt 0.75s ease-in-out infinite", transformOrigin: "bottom center" } : {}),
+        cursor: "pointer",
+        filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+      }}
     >
       <svg
         viewBox="0 0 50 50"
         className="w-full h-full"
-        style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))" }}
       >
         {/* Body — wide frog shape */}
         <ellipse cx="25" cy="28" rx="22" ry="18" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
@@ -91,11 +133,6 @@ export default function SillyFace() {
           strokeLinecap="round"
         />
 
-        {/* Tongue (on click buildup) */}
-        {clickCount >= 3 && !dizzy && (
-          <ellipse cx="25" cy="37" rx="4" ry="3" fill="#FF7B89" stroke="#2D2A24" strokeWidth="1" />
-        )}
-
         {/* Dizzy stars */}
         {dizzy && (
           <>
@@ -106,7 +143,7 @@ export default function SillyFace() {
         )}
       </svg>
 
-      {/* Interactive eyes overlay — positioned on top of eye bumps */}
+      {/* Interactive eyes overlay */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
@@ -114,7 +151,11 @@ export default function SillyFace() {
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
-            style={{ width: "50%", height: "50%", left: "25%", top: "25%", transition: "transform 75ms ease-out" }}
+            style={{
+              width: "50%", height: "50%", left: "25%", top: "25%",
+              transition: "transform 75ms ease-out",
+              ...(dizzy ? { animation: `dizzy-spin 0.65s linear infinite`, animationDirection: dizzyDir === 1 ? "normal" : "reverse", transition: "none" } : {}),
+            }}
           />
         </div>
 
@@ -124,7 +165,11 @@ export default function SillyFace() {
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
-            style={{ width: "50%", height: "50%", left: "25%", top: "25%", transition: "transform 75ms ease-out" }}
+            style={{
+              width: "50%", height: "50%", left: "25%", top: "25%",
+              transition: "transform 75ms ease-out",
+              ...(dizzy ? { animation: `dizzy-spin 0.65s linear infinite`, animationDirection: dizzyDir === 1 ? "normal" : "reverse", transition: "none" } : {}),
+            }}
           />
         </div>
       </div>

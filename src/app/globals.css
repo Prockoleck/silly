@@ -77,6 +77,21 @@ body {
   75% { rotate: -6deg; }
 }
 
+@keyframes dizzy-spin {
+  0% { transform: rotate(0deg) translateX(2px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(2px) rotate(-360deg); }
+}
+
+@keyframes bounce-ball {
+  0% { transform: scale(1); animation-timing-function: ease-out; }
+  15% { transform: scale(1.25, 0.75); animation-timing-function: ease-in; }
+  30% { transform: scale(0.85, 1.15); animation-timing-function: ease-out; }
+  50% { transform: scale(1.08, 0.92); animation-timing-function: ease-in; }
+  70% { transform: scale(0.97, 1.03); animation-timing-function: ease-out; }
+  85% { transform: scale(1.02, 0.98); }
+  100% { transform: scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
