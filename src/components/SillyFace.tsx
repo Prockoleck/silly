@@ -161,8 +161,8 @@ export default function SillyFace() {
     animate(performance.now());
   }, [animate]);
 
-  const w = 40;
-  const h = 75;
+  const w = 38;
+  const h = 64;
   const svgSize = w;
   const svgTop = h - svgSize;
   const scale = svgSize / 50;
