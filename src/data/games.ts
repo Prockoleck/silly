@@ -41,4 +41,25 @@ export const games: Game[] = [
     image: "/sandboxels-thumb.jpeg",
     isNew: true,
   },
+  {
+    slug: "life-checklist",
+    title: "Life Checklist",
+    description: "A checklist for the average human life. How many items have you completed?",
+    image: "/games/life-checklist.jpeg",
+    isNew: true,
+  },
+  {
+    slug: "baby-map",
+    title: "Baby Map",
+    description: "Watch the world's population grow in real-time on an interactive birth map.",
+    image: "/games/baby-map.jpeg",
+    isNew: true,
+  },
+  {
+    slug: "progress",
+    title: "Progress",
+    description: "See how much time is left until the next minute, hour, day, and 15 other fun events.",
+    image: "/games/progress.jpg",
+    isNew: true,
+  },
 ];

@@ -32,6 +32,9 @@ const gameComponents: Record<string, () => Promise<{ default: React.ComponentTyp
   "scale-shifter": () => import("./scale-shifter"),
   "ranker": () => import("./ranker"),
   "sandboxels": () => import("./sandboxels"),
+  "life-checklist": () => import("./life-checklist"),
+  "baby-map": () => import("./baby-map"),
+  "progress": () => import("./progress"),
 };
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -46,8 +49,10 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
   const GameModule = await loadGame();
   const GameContent = GameModule.default;
 
+  const wideGames = new Set(["baby-map", "progress"]);
+
   return (
-    <GameFrame title={game.title}>
+    <GameFrame title={game.title} wide={wideGames.has(slug)}>
       <GameContent />
       <div className="absolute bottom-4 right-4">
         <SupportButton />
