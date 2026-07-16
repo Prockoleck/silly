@@ -73,38 +73,13 @@ body {
 
 @keyframes dizzy-tilt {
   0%, 100% { rotate: 0deg; }
-  25% { rotate: 6deg; }
-  75% { rotate: -6deg; }
+  25% { rotate: 5deg; }
+  75% { rotate: -5deg; }
 }
 
 @keyframes dizzy-spin {
-  0% { transform: rotate(0deg) translateX(2px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(2px) rotate(-360deg); }
-}
-
-@keyframes jump-bounce {
-  0% { transform: translateY(0) scale(1,1); }
-  3% { transform: translateY(6px) scale(1.2,0.8); }
-  8% { transform: translateY(-35px) scale(0.85,1.18); }
-  12% { transform: translateY(0) scale(1.18,0.82); }
-  15% { transform: translateY(4px) scale(1.15,0.85); }
-  19% { transform: translateY(-22px) scale(0.88,1.14); }
-  22% { transform: translateY(0) scale(1.12,0.88); }
-  25% { transform: translateY(3px) scale(1.1,0.9); }
-  28% { transform: translateY(-12px) scale(0.92,1.1); }
-  31% { transform: translateY(0) scale(1.08,0.92); }
-  34% { transform: translateY(2px) scale(1.07,0.93); }
-  37% { transform: translateY(-6px) scale(0.95,1.06); }
-  40% { transform: translateY(0) scale(1.04,0.96); }
-  43% { transform: translateY(1px) scale(1.04,0.96); }
-  46% { transform: translateY(-3px) scale(0.97,1.03); }
-  49% { transform: translateY(0) scale(1.02,0.98); }
-  55% { transform: translateY(0) scale(1.01,0.99); }
-  100% { transform: translateY(0) scale(1,1); }
-}
-
-.jump-bounce {
-  animation: jump-bounce 1.5s ease-in-out;
+  0% { transform: rotate(0deg) translateX(1.5px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(1.5px) rotate(-360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
