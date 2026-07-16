@@ -59,67 +59,72 @@ export default function SillyFace() {
         className="w-full h-full"
         style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))" }}
       >
-        {/* Face */}
-        <circle cx="25" cy="25" r="22" fill="#FFDCB5" stroke="#2D2A24" strokeWidth="2" />
+        {/* Body — wide frog shape */}
+        <ellipse cx="25" cy="28" rx="22" ry="18" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
+
+        {/* Belly — lighter */}
+        <ellipse cx="25" cy="32" rx="14" ry="11" fill="#A8E6A3" opacity="0.6" />
+
+        {/* Eye bumps */}
+        <ellipse cx="15" cy="14" rx="7" ry="6" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
+        <ellipse cx="35" cy="14" rx="7" ry="6" fill="#7BC67E" stroke="#2D2A24" strokeWidth="2" />
 
         {/* Rosy cheeks */}
-        <ellipse cx="11" cy="28" rx="4.5" ry="3" fill="#FFB5B5" opacity="0.45" />
-        <ellipse cx="39" cy="28" rx="4" ry="2.5" fill="#FFB5B5" opacity="0.45" />
+        <ellipse cx="8" cy="30" rx="4" ry="2.5" fill="#FF9AA2" opacity="0.5" />
+        <ellipse cx="42" cy="30" rx="4" ry="2.5" fill="#FF9AA2" opacity="0.5" />
 
-        {/* Left eyebrow (raised — silly!) */}
-        <path d="M 9 12 Q 14 8 19 11" fill="none" stroke="#2D2A24" strokeWidth="2" strokeLinecap="round" />
+        {/* Spots */}
+        <circle cx="18" cy="36" r="1.5" fill="#5DAF60" opacity="0.5" />
+        <circle cx="30" cy="38" r="2" fill="#5DAF60" opacity="0.5" />
+        <circle cx="22" cy="40" r="1" fill="#5DAF60" opacity="0.4" />
 
-        {/* Right eyebrow (normal) */}
-        <path d="M 31 14 Q 36 12 41 14" fill="none" stroke="#2D2A24" strokeWidth="2" strokeLinecap="round" />
+        {/* Nostrils */}
+        <circle cx="22" cy="24" r="1.2" fill="#4A8B4D" />
+        <circle cx="28" cy="24" r="1.2" fill="#4A8B4D" />
 
-        {/* Freckles */}
-        <circle cx="14" cy="23" r="0.8" fill="#D4A57A" />
-        <circle cx="17" cy="25" r="0.7" fill="#D4A57A" />
-        <circle cx="13" cy="26" r="0.6" fill="#D4A57A" />
-
-        {/* Lopsided smile */}
+        {/* Wide goofy smile */}
         <path
-          d="M 15 33 Q 25 40 37 32"
+          d="M 12 32 Q 25 42 38 32"
           fill="none"
           stroke="#2D2A24"
           strokeWidth="2"
           strokeLinecap="round"
         />
 
-        {/* Tongue (appears on click buildup) */}
+        {/* Tongue (on click buildup) */}
         {clickCount >= 3 && !dizzy && (
-          <ellipse cx="26" cy="37" rx="3.5" ry="2.5" fill="#FF7B89" stroke="#2D2A24" strokeWidth="1" />
+          <ellipse cx="25" cy="37" rx="4" ry="3" fill="#FF7B89" stroke="#2D2A24" strokeWidth="1" />
         )}
 
         {/* Dizzy stars */}
         {dizzy && (
           <>
-            <text x="8" y="10" fontSize="7" fill="#FFB347" fontWeight="bold">★</text>
-            <text x="38" y="8" fontSize="5" fill="#FFB347" fontWeight="bold">★</text>
-            <text x="24" y="6" fontSize="4" fill="#FFB347">✦</text>
+            <text x="6" y="10" fontSize="6" fill="#FFB347" fontWeight="bold">★</text>
+            <text x="40" y="10" fontSize="6" fill="#FFB347" fontWeight="bold">★</text>
+            <text x="23" y="6" fontSize="4" fill="#FFB347">✦</text>
           </>
         )}
       </svg>
 
-      {/* Interactive eyes overlay */}
+      {/* Interactive eyes overlay — positioned on top of eye bumps */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
-          style={{ width: "22%", height: "22%", left: "22%", top: "28%" }}
+          style={{ width: "16%", height: "20%", left: "15%", top: "12%" }}
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
-            style={{ width: "40%", height: "40%", left: "30%", top: "30%", transition: "transform 75ms ease-out" }}
+            style={{ width: "50%", height: "50%", left: "25%", top: "25%", transition: "transform 75ms ease-out" }}
           />
         </div>
 
         <div
           className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
-          style={{ width: "17%", height: "17%", left: "59%", top: "30%" }}
+          style={{ width: "16%", height: "20%", left: "35%", top: "12%" }}
         >
           <div
             className="pupil absolute bg-[#2D2A24] rounded-full"
-            style={{ width: "44%", height: "44%", left: "28%", top: "28%", transition: "transform 75ms ease-out" }}
+            style={{ width: "50%", height: "50%", left: "25%", top: "25%", transition: "transform 75ms ease-out" }}
           />
         </div>
       </div>
