@@ -90,7 +90,7 @@ export default function SillyFace() {
       ref={faceRef}
       onClick={handleClick}
       onAnimationEnd={onBounceEnd}
-      className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 select-none ${bouncing ? "bounce-ball" : ""} ${dizzy ? "scale-110" : ""}`}
+      className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 select-none ${bouncing ? "jump-bounce" : ""} ${dizzy ? "scale-110" : ""}`}
       style={{
         ...(dizzy ? { animation: "dizzy-tilt 0.75s ease-in-out infinite", transformOrigin: "bottom center" } : {}),
         cursor: "pointer",
@@ -146,7 +146,7 @@ export default function SillyFace() {
       {/* Interactive eyes overlay */}
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
+          className="absolute bg-white rounded-full"
           style={{ width: "16%", height: "20%", left: "22%", top: "18%" }}
         >
           <div
@@ -160,7 +160,7 @@ export default function SillyFace() {
         </div>
 
         <div
-          className="absolute bg-white rounded-full border-2 border-[#2D2A24]"
+          className="absolute bg-white rounded-full"
           style={{ width: "16%", height: "20%", left: "62%", top: "18%" }}
         >
           <div
