@@ -352,6 +352,17 @@ function ErrorIcon() {
   );
 }
 
+const ANIM_CSS = `
+@keyframes ruleSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes btnSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+`;
+
 export default function PasswordGame() {
   const [password, setPassword] = useState("");
   const [ctx, setCtx] = useState<Ctx>({
@@ -365,6 +376,7 @@ export default function PasswordGame() {
   const [reTypeOk, setReTypeOk] = useState(false);
   const [tick, setTick] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const prevReachedRef = useRef(1);
 
   useEffect(() => {
     const captcha = generateCaptcha();
@@ -430,8 +442,14 @@ export default function PasswordGame() {
 
   if (!inited) return null;
 
+  const isNewRule = ruleReached > prevReachedRef.current;
+  if (isNewRule) {
+    prevReachedRef.current = ruleReached;
+  }
+
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", fontFamily: "sans-serif" }}>
+      <style dangerouslySetInnerHTML={{ __html: ANIM_CSS }} />
       <h1 style={{ fontSize: 28, fontWeight: 700, textAlign: "center", marginBottom: 24 }}>
         The Password Game
       </h1>
@@ -490,23 +508,30 @@ export default function PasswordGame() {
             </p>
           )}
 
-          <div style={{ marginTop: 24 }}>
+          <div>
             {ALL_RULES.map((rule, i) => {
               const ruleNum = i + 1;
               if (ruleNum >= ruleReached + 1) return null;
-              const isActive = ruleNum === ruleReached;
               const passed = ruleNum < ruleReached;
+              const isNew = ruleNum === ruleReached - 1 && ruleReached > prevReachedRef.current;
               return (
                 <div
                   key={i}
                   style={{
                     display: "flex", alignItems: "flex-start", gap: 10,
                     padding: "10px 0", borderTop: i > 0 ? "1px solid #eee" : "none",
-                    opacity: passed ? 0.6 : 1,
+                    opacity: passed ? 0.55 : 1,
+                    transition: "opacity 0.4s ease",
+                    ...(isNew ? { animation: "ruleSlideIn 0.3s ease-out" } : {}),
                   }}
                 >
-                  <div style={{ marginTop: 2, flexShrink: 0 }}>
-                    {passed ? <CheckIcon /> : <ErrorIcon />}
+                  <div style={{ position: "relative", width: 20, height: 20, flexShrink: 0, marginTop: 2 }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, opacity: passed ? 1 : 0, transition: "opacity 0.35s ease, transform 0.35s ease", transform: passed ? "scale(1)" : "scale(0.7)" }}>
+                      <CheckIcon />
+                    </div>
+                    <div style={{ position: "absolute", top: 0, left: 0, opacity: passed ? 0 : 1, transition: "opacity 0.35s ease, transform 0.35s ease", transform: passed ? "scale(0.7)" : "scale(1)" }}>
+                      <ErrorIcon />
+                    </div>
                   </div>
                   <div>
                     <span style={{ fontSize: 12, color: "#999", fontWeight: 600 }}>Rule {ruleNum}</span>
@@ -521,7 +546,7 @@ export default function PasswordGame() {
           </div>
 
           {allPassed && !gameComplete && (
-            <div style={{ textAlign: "center", marginTop: 24 }}>
+            <div style={{ textAlign: "center", marginTop: 24, animation: "btnSlideIn 0.35s ease-out" }}>
               <button
                 onClick={handleConfirm}
                 style={{
