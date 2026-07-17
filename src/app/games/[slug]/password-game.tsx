@@ -442,10 +442,8 @@ export default function PasswordGame() {
 
   if (!inited) return null;
 
-  const isNewRule = ruleReached > prevReachedRef.current;
-  if (isNewRule) {
-    prevReachedRef.current = ruleReached;
-  }
+  const newRuleIdx = ruleReached > prevReachedRef.current ? ruleReached - 1 : -1;
+  prevReachedRef.current = ruleReached;
 
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", fontFamily: "sans-serif" }}>
@@ -513,7 +511,7 @@ export default function PasswordGame() {
               const ruleNum = i + 1;
               if (ruleNum >= ruleReached + 1) return null;
               const passed = ruleNum < ruleReached;
-              const isNew = ruleNum === ruleReached - 1 && ruleReached > prevReachedRef.current;
+              const isNew = ruleNum === newRuleIdx;
               return (
                 <div
                   key={i}
